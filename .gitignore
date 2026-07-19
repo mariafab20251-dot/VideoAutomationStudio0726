@@ -58,6 +58,24 @@ _piper_preview.wav
 # Scratch / profile / test scripts (prefixed with _)
 _profile_out/
 _backup_prompts_*/
+_bb_*
+_smoke_*
+_speedtest_*
+_profile_*
+_merge_*
+_compact_*
+_debug_*
+_temp_*
+_preview_*
+_our_script_*
+_fix_fonts_*
+_fix_log_*
+_indextts_*
+_audit_*
+_fix_all*
+_qwen_check*
+_test_*
+_read_transcript*
 bkkkk/
 _check_*.py
 _fix_*.py
