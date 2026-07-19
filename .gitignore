@@ -100,7 +100,6 @@ _indent_*.txt
 _insertion_debug.txt
 _prompt_debug.txt
 _video_desc.txt
-_whisper_word_timestamps.py
 _tailcheck/
 scratch_*.wav
 thumbnail.png
@@ -120,6 +119,10 @@ VoiceModules/pytorch/
 *.onnx
 *.pt
 VoiceModules/**/*.bin
+
+# Whisper model weights (faster-whisper) — copied per-machine, too big for git.
+# The _whisper_word_timestamps.py helper auto-detects them in this folder.
+models/whisper/
 
 # User content
 Background music/

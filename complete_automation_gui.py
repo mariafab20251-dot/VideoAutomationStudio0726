@@ -15026,6 +15026,28 @@ class VideoAutomationGUI(DubbingTabMixin, ThumbnailTabMixin):
 
         clip = VideoFileClip(_src_for_clip)
 
+        # 0) Mirror (anti-copyright hflip) — applied HERE, before the watermark
+        # is composited, so only the VIDEO is flipped and the watermark stays
+        # readable (never mirrored). We then disable mirror in the ffmpeg
+        # post-process so the frame isn't flipped a second time.
+        if mirror:
+            _mirrored = False
+            try:
+                from moviepy.video.fx import MirrorX
+                clip = clip.with_effects([MirrorX()])
+                _mirrored = True
+            except Exception:
+                try:
+                    import numpy as _np_mir
+                    clip = clip.image_transform(lambda f: f[:, ::-1])
+                    _mirrored = True
+                except Exception as _e:
+                    print(f'[WARNING] MoviePy mirror failed ({_e}); '
+                          'deferring to ffmpeg post-process')
+            if _mirrored:
+                print('[OK] Cleanup: mirror applied pre-watermark (MoviePy)')
+                mirror = False  # don't hflip again in ffmpeg post-process
+
         # 1) AM template per-frame look (uses the same per-frame callback
         # the main render uses, so the look is identical).
         if s.get('am_template', 'None') != 'None':

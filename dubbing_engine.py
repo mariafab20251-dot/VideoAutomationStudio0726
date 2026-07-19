@@ -163,11 +163,19 @@ def _resolve_whisper_python(settings: dict, log) -> str | None:
         if c in _seen or not Path(c).is_file():
             continue
         _seen.add(c)
+        # Accept either faster-whisper (preferred) or openai-whisper.
         try:
-            r = subprocess.run([c, '-c', 'import whisper; print(whisper.__version__)'],
-                               capture_output=True, text=True, timeout=10)
-            if r.returncode == 0:
-                log('info', f'Dub: whisper Python = {c} (v{r.stdout.strip()})')
+            r = subprocess.run(
+                [c, '-c',
+                 'import importlib.util as u;'
+                 'fw=u.find_spec("faster_whisper") is not None;'
+                 'ow=u.find_spec("whisper") is not None;'
+                 'print("fw" if fw else ("ow" if ow else "none"))'],
+                capture_output=True, text=True, timeout=10)
+            tag = (r.stdout or '').strip()
+            if r.returncode == 0 and tag in ('fw', 'ow'):
+                engine = 'faster-whisper' if tag == 'fw' else 'openai-whisper'
+                log('info', f'Dub: whisper Python = {c} ({engine})')
                 return c
         except Exception:
             pass
@@ -242,7 +250,8 @@ def transcribe_video(video_path: Path, settings: dict, log=None,
     try:
         result = subprocess.run(
             [venv_python, str(whisper_script), audio_to_transcribe,
-             '--model', 'base', '--language', whisper_lang],
+             '--model', str(settings.get('dub_whisper_model', 'medium')),
+             '--language', whisper_lang],
             capture_output=True, text=True, timeout=600)
         if result.returncode != 0:
             log('error', f'Dub: whisper error (rc={result.returncode}): '

@@ -15,3 +15,13 @@ pandas>=2.0.0
 
 # Edge TTS (online Microsoft TTS — lightweight, no extra model downloads)
 edge-tts>=6.0.0
+
+# Gemini / Cloud TTS + translation via service account (Dubbing, Thumbnails)
+google-auth>=2.30.0
+
+# Whisper — REQUIRED for the Dubbing tab (transcribes original dialogue).
+# faster-whisper is the PREFERRED engine (4x faster, CPU-friendly, auto GPU);
+# openai-whisper is the last-resort fallback. Both pull in torch (~2 GB).
+# Comment out if you don't use dubbing.
+faster-whisper>=1.0.0
+openai-whisper>=20231117
