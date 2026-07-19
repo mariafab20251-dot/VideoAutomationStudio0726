@@ -258,10 +258,12 @@ class DubbingTabMixin:
                  bg=AppStyles.BG_CARD, fg=AppStyles.ACCENT_PRIMARY,
                  font=('Segoe UI', 9)).pack(anchor='w', pady=(0, 4))
 
-        # ── 5) Log box ─────────────────────────────────────────────────
+        # ── 5) Log box (expands to fill remaining space) ────────────
         log_card = self._dub_card(body, '📋 Log')
+        log_card.pack_forget()
+        log_card.pack(fill='both', expand=True, pady=6)
         self._dub_log_widget = tk.Text(
-            log_card, height=10, wrap='word', bg=AppStyles.BG_INPUT,
+            log_card, height=6, wrap='word', bg=AppStyles.BG_INPUT,
             fg=AppStyles.TEXT_DARK, font=('Consolas', 8), relief='flat', bd=4)
         self._dub_log_widget.pack(fill='both', expand=True, padx=6, pady=6)
         self._dub_running = False
