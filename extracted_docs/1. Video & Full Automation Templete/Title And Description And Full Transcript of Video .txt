@@ -1,0 +1,438 @@
+Title : FREE Bulk Create 1000+ Viral AI YouTube Shorts on AUTOPILOT (ChatGPT + n8n)
+
+Description: "🎥 In this video, we’ll build a powerful AI automation using n8n Agents to make 1000 (Unlimited Basically) Viral AI YouTube Shorts — step-by-step!
+
+🚀 Unlock the Future of Automation! | Master n8n Agents + AI SaaS Workflows 🤖
+
+ 👇 Start Building Smarter Systems NOW 👇
+Ready to automate everything? Whether you're building the next-gen startup or scaling your side hustle, this channel dives deep into n8n Agents, AI SaaS tools, and no-code/low-code automation that actually work.
+In this video, you’ll learn:
+
+ ✅ Install the YouTube Automation Stack
+ ✅ Build the Entire YouTube Automation Agent
+ ✅ Deploy our Faceless SaaS Agent
+ ✅ Real-world automations that save hours daily
+
+💡 No fluff, just results-driven tutorials that help you launch faster and smarter.
+🔔 Subscribe for weekly drops: automation hacks, AI tools breakdowns, and behind-the-scenes of building real SaaS systems!
+👇 Tools Featured in this Tutorial:
+ • n8n (Open-source automation)
+ • ChatGPT / OpenAI API
+ • ComfyUI 
+
+📥 Free Resources & Templates:
+Link to the YouTube Automation Stack Installer - 
+https://docs.google.com/document/d/1k..."
+
+
+Full Transcript Below:
+
+Take a look at these creators on Instagram, Tik Tok, and YouTube. They're getting hundreds of thousands of views,
+if not millions, from the short videos that probably take them 5 minutes to make. And can you guess how much they're
+making per month? I'll tell you in a moment, but pause the video and drop your guess in the comments. And if you
+get the correct number, I'm going to pin that comment on the top. I'm waiting. We're talking about $10,000 to $30,000
+per month, depending on how they monetize their video. What if I told you that you can make thousands of these
+short clips on autopilot and monetize social media accounts to literally retire yourself from home? In this
+video, I'm not only going to show you how to create boatloads of these viral shorts videos, but also how you can
+easily scale your brand and monetize your channel with the secret scheduling post method everywhere with just one
+click. I've used it for almost every single one of my businesses on social media and it's absolutely going crazy.
+You're watching Dorian AI and let's talk about the first thing. How do these pages make money and how much do they
+pay? Some might think that they're making money from ad revenue and that would be literal pennies, but you could
+be completely wrong. These pages make their money from info products and affiliate products. So these videos have
+millions of views. So even 1% of the people buy your product. That means for every 1 million people who watch your
+video, 10,000 people buy your product. And even if you sell your product as as low as $2, that's $20,000 a month just
+from one video. And you can have many of these videos. But to scale your channel and this brand, you need many videos.
+You have to mass post. So for this tutorial, I would be using any and comfy UI. And you don't have to pay a single
+dollar to use it. No subscription cost from AI services. No API costs. This is
+completely free and you can do it for yourself as well. This video will be divided into two sections. In the first
+section, we'll install all the softwares you need to get the system up and running. And in the next part, I'll show
+you how you can build your agent for yourself. this faceless automation agent that will get you millions of views. And
+if you don't want to spend time learning and building this agent, you can get this automation agent in our community. And if you want me to release this agent
+for free, hit that like button, subscribe, and comment free agent. And as soon as this video hits 1,000 likes,
+I'll release this agent for free in the first comment that is pinned below. So, let's start by installing our own
+Installing the YouTube Automation Stack
+YouTube automation stack. And I've also given you a free Google document which contains all the commands so you can
+install the stack step by step. So the first step would be to install Docker. So I'm going to click on this link and
+head to the official Docker website. Now I'm going to hover over this button and choose the operating system my computer
+is running. So I'm on a Windows machine. So I'm going to select this and soon Docker will start downloading. And here
+it is. So after the download is complete, click on the installer and go ahead install Docker. I already have
+installed Docker on my computer. So I'm going to open it. And now you can see my Docker desktop is running and I have the
+entire YouTube automation toolkit installed here. But I'm going to redo it for you. The first step that you have to
+ensure is that the engine is running. After the Docker engine is running, click on the terminal and come here. The
+next step would be to copy all these commands and run it. So I copy the first command which is install n and then come
+here and paste it. And now I'm going to run the command. And now you can see the install is complete. So let's go back
+and check here. So we have our N10 running at this address. So let's go ahead and start installing mini IHO
+object store. So now I'm going to copy this command and paste it here. And now I'm going to run
+it. And here you can see mini IO is running. And now let's look at our next step which says open localhost 901. So
+I'm going to go in docker and click on this link. And now you can see our mini IO console is running. And now it also
+tells you the username and the password which is admin and password 1 2 3. So I'm going to head to the mini io console
+and say admin and password 1 2 3 and then click on login.
+So now I'm inside the mini io object store. Let's look at our next step. So now we have to make a bucket named NCA
+toolkit. So what I'm going to do is click on the create a bucket and then name it NCA toolkit and then click
+create bucket. And there's one more thing that I'm going to do is I'll open this and I'll change it to public. So we
+can call the API from any link and only do it if you're using your local network. If you're hosting this online,
+do not do this because then everyone can open your website. The next step that I'll do is create some access keys. Now
+I'm going to head to access keys and press create access key. And now you can see I already have my access and secret
+key generated. I'm going to name it NCA toolkit as well so I know what is this
+access key for. The next step would be to install copper TTS. So we're going to use this to generate speech. So I'm
+going to copy this and considering if you have a GPU or a CPU run this. So I'm
+just going to go ahead and run the GPU version and depending on if you have Nvidia GPU or not run these commands. So
+I already have a Nvidia GPU. So I'm going to run this command. Then open the terminal again and paste it here. And
+now you can see our texttospech model is also installed. The next step is to install NCA toolkit. So now I'll copy
+this command to install the NCA toolkit. So even before I head to Docker, so we
+have to make some changes in this command. So I'll paste it here and I'll show you what exactly you have to change. You can leave the API key to the
+key and then for the S3 endpoint URL, you can leave that as well. But for the access key, what you have to do is head
+here, the object store that we created, and copy the access key from here and change the access key
+to this. And the next step would be to copy the secret key. I'm going to copy the secret key and head back to my
+notepad and then paste it here. So now I have this command ready and I'm going to head to Docker and open the terminal
+again. Clear this and then run this code. And now we have successfully installed the
+NCHK. And here you can see we have installed everything that we needed. So these are all the installed that we
+recently did. We have all these things running. For example, let me show you. So now let's open this link and see if
+we have a fresh any10 installed. And here you can see we have a fresh any running at localhost 5678. And now I'll
+just go ahead and give it some random names and continue the process. So I'm just going to call it
+test account. And then for the password I'm just going to say test. And now I can
+click on next and open any. And here we have a fresh N10
+installer ready. You can start from scratch. And now you can see everything is working here. So we can make our
+official workflows. So now we have completed part one of our course and we have all these software running in four
+different Docker containers. The first is any the second is Mini IO object store. The third is the Coco texttospech
+model and the fourth is the NCA toolkit. So now let's go ahead and build our official automation. So after our
+Building the Viral AI Agent
+YouTube automation stack is ready, let's head to our NA10 template and see what exactly is going on here step by step.
+So I'm going to head to the idea and script generation guide and let's look at our first section which is the idea
+and script generation and voice over. So what I'm going to do is the first step that you need is a schedule trigger. So
+if you don't want to trigger it automatically at a given time, what you should actually do is come here and
+select a different trigger. And you can either trigger it manually or any other way. The next thing what will happen is
+I'm just going to trigger it here to show you what exactly goes on. So now let's look at our next node which is a video information tool. And you can add
+this tool by clicking on plus and adding edit fields. So you have this and after
+you add this node, what you actually have to do is configure this node. So I already given it some information which
+is the video keywords, the number of images and the time to publish. So rather than manually entering all this
+information, what you can actually do is connect this node to a form submissions. So you can access the link and enter
+these information if you want different images. So let's run this node now. So I'm going to test it and you'll see that
+it outputs the video keywords, the number of images and time to publish. So the number of images is how many images
+will be in our video. So whatever number you give here and the number of images will be the number of images in your
+video. So if you give five images then the video will consist of five images transitioning between them. So I'm just
+going to give it two just to demonstrate it and you can actually increase it if your video is longer. The next is the
+idea and script AI generator. So this agent what it does is it takes this
+prompt and you can actually copy this prompt here. You can pause the video and take the screenshot and it's also
+included in the community. You get all the prompts here. So this prompt generates the title of the video, the
+story and the quote and you can generate anything. So if you tell it to generate markers orius codes, it's going to
+generate that and any other story quotes. You can configure it to be anything. You can change different titles and you can get the prompts here
+and you can configure this agent for yourself. The next would be description agent and the description is written
+based on the inputs which is the title, story quotes and the keywords. So now we have a description. So it's going to be
+pasted in our YouTube video when we post it and any other platform and you can also copy the description agent from
+here. So now we have this agent running. So we have one information output which is the description. Now we have the info
+to sheets. What this does is it stores all our information in this Google Sheets. So what this note does is it
+maps all the information we have and takes it to Google sheets so we can track what's going on. So it has the
+video title, keywords, description, script, number of images, time to publish, and the status. And when you
+publish it, it be changed to publish. And you can also add tracking and stuff, which I'll teach you later in a different course in the community. Let's
+get ahead. So we have this information ready. And now I'm going to run it. And now you can see the information is ready
+to be added. And in the code, what this code does is it actually changes the
+video title to a smaller form. So we can add it to our file names. And now you
+can see the title of the video was the statue's whisper. It actually changed it to this case. So it added it removed all
+the free spaces and added the underscore. So it can be a consistent file name because you cannot name files
+with a gap in some places. For example, if we store it on our local system, it's not going to work. So now we have this
+code ready and it's working. Now the next step would be to add it to our Google Sheets. So I actually added this from
+here. So I can just come here and add a Google sheet here. And then this is for appending the data. And if you want to
+know how you can connect the Google Sheets API, I'm going to link the video right here. And so you can check that
+video out. And the link to that video will also be in the description. So now let's head back and see our Google Sheets. So here you can see our data is
+created. We have our title, the keywords, the description, the script, and the number of images and the time to
+publish. And the status is not published right now. The next thing we have to do is look at
+our voice and image generation agent. So let's run our first node which is the voice generation agent. And for this I
+am using the cocoor texttospech model which we just installed here in docker. So I'm going to test this step and you
+can take the script from here. I'm going to just show it to you so you can have the information. So here's the URL that
+you need. This is the API link the we went audio speech and this is the JSON
+that I use that the model the voice and the input script. So if I run this I get
+this audio data path. So if I view it now you can hear the in the shadow of the forum a weathered statue of a
+forgotten emperor stood its marble cracked by time. Even the mightiest
+stone crumbles yet the wise soul. So this is our audio and it's ready. And if
+you want custom audios it's available in the community. for example, deeper audios and all that stuff. I'll teach
+you how to make different AI voices in the model and how you can train your own corporate TTS model. So now our voice
+over is ready. So the next step is to add the voice over to Google Drive. You can actually store it locally as well.
+But just as a fail safe, I'm also adding Google Drive link so you can have everything online. So let me open Google
+Drive and show it to you. So here's the Google Drive folder that I've created. I've created the stoic source folder. So
+in the images there are all the images that I'll show you how to generate right away. And then in the video the final
+video will be here and the voice over the voice over is stored here. And in the final renders this is the exact final video with everything including
+the subtitles and all that stuff. I created this before for testing the the philosopher stood by the tyber and you
+can actually make different kind of subtitles as well. So let's head back to our automation. So now I'm going to run
+this Google Drive link. So what it's going to do is it's going to upload our voice over to Google Drive. And if you
+want to learn how you can configure Google Drive, how you can configure the API, it's the same way you configure
+sheet except you run on the drive API. So now this node has completed running. So I'm going to go ahead and go to
+voiceovers and there you go. So we have the statues whisper which was just
+generated right now and they have our audio ready in the shadow of the forum. Perfect. So
+what I'm going to do now is actually save it
+locally. And then now what this note does is it saves
+all my information locally in this folder which is the stoic shorts voice over and the actual voice over and let
+me show you how you can do it. So these are the actual commands and the data sub
+but you can come here in n and you can go here in files and you can see where
+it's stored. So it's stored in data and the videos, images, voice overs and you can see all the stuff is stored here
+locally. So it never gets lost. So you have your whole collection ready. The next step would be to generate the image
+generation prompts and then I'm going to show you how you can generate all the AI
+images locally. I'm going to help you set it up in the most minimal way and then we'll just generate the images. So
+I'm going to run this image generation prompt. What this actually does it it takes the voice over and it analyzes the
+voice over and based on that it generates us some image prompts and here you can see so we have these two image
+prompts and it's actually separated by these new lines. So the reason we have
+two is because we actually entered that we wanted two images. So if you entered
+more it's going to generate more image prompts. And now I'm going to run this code. And what this code does is we can
+see here what it does is it takes the input which was the last node. So it's
+going to take in the image prompts and then it's going to separate the two image prompts. So whenever it encounters
+something of these characters, so it's going to split it into two and send it back. So when I run this, you'll see
+that it takes this output and then it's going to give us two prompts. You can say prompt one and prompt two. And we're
+going to use these prompts to make the image. Now this is how you generate the images.
+Configuring Comfy UI for Image Generation
+So before you go ahead click on this tab which is the minimal config UI setup. So to run all
+of this you need conf UI and conf UI is the minimal way to run AI models locally specifically image models video models
+and all that stuff. So what we're going to do is open this repository click on the link and open this repository and
+now you will see the app compi. So there are a few ways to do it. So I just tell you both the ways. So either you can
+just manually download the repository. So you can come here, click on this link and then download zip, you click this,
+the download will start. So that's one way and I'm actually going to delete it. I don't want it. And the other way is
+that you can open your code editor in my case cursor. And then what you can
+actually do is you can open this. So you have this new terminal here. And what
+you're going to do is type get clone. And then you'll head back to the comfy
+UI and you'll copy this link. And then what you're going to do is go and paste
+it here. And then when you enter it, when I click enter, what's going to happen is this folder will be created
+for you. So I already have it ready. So when I click enter, this is going to be
+created. So now you have all these files. And before you run this, what you actually have to do is come back here
+and copy these commands. You have to run these four commands. Firstly, you have to copy this and head back to the
+terminal and paste it here. So what this is going to do is it's going to create a virtual environment named virtual
+environment. So you're telling it Python. So you're telling Python to create a virtual environment named virtual environment. And here you can
+see I have the v and v. So this is what I created. When I run this command, this folder is going to be created. So for
+me, this is already created. So what the next command does is that it actually activates the virtual environment we
+created. So let me show you an example. I already have it created. So I'm going to copy this and come here and paste it.
+And now you can see I'm in a virtual environment. So I'm no longer in my global system environment. So I'm just
+going to remove this because I already have it active here. I'm going to show you. There you go. So when I did the
+entire thing, I opened the environment first. So after you have done this, what you should actually do is copy this
+command. So when you have then you have to copy this command and go back and paste it in the terminal and press enter
+again. And then you have to copy this fourth command, the install requirements command. And after you do this, it's
+going to take around 5 to 10 minutes maximum. And then you enter this command, which is that you run the
+main.py file. So actually I'm going to close all of this and show it to you. So I'm not going to show you the installation part because I already have
+it done. But I'm going to show you how you can run it once the installation is complete. So let me even close this terminal and then I'm going to open the
+terminal again. I'm going to go on top and new terminal. Then as I said I'll enter the first command which is dot /
+venv scripts activate. And now you'll see I'm in the virtual environment. And
+after all the download is complete. So there's a main file which is the actual main file as the name says. So, what you
+have to do is now open the main file with Python. So, now if I open this,
+you'll see that it's going to do a few things, but I'll have my comfy UI running. And now you can see it's
+loading up. And here you can see it's detecting my graphics card. And you can generate images with a low tier graphics
+card. Even with 2 GB of VRAM, you can generate the images with AI. So, that's
+not a problem. And now you can see that it's setting everything up and it's going to load up pretty quickly. And now
+you can see the server started running at this URL. So I'm going to click this. And now I have my country UI running.
+And you can see all the setup that I have. And this is extremely basic workflow. And if you want to learn more
+about Comfy UI and how you can actually create more advanced setups including everything for example in the classroom
+I also have a AI only fans blueprint and all the best comi systems you can create
+and using the blueprints in the community you can create the most realistic images and all the people that
+are doing all this stuff. So for this tutorial I'm going to keep it simple and what I'm going to do is click on workflow and then click on browse
+templates and from the image I'm going to click on flux and then you can choose any of these. So I already have flux
+step and when you do this I am already getting all this set up but what you're
+going to get is a prompt that says that you have to download a few things. So the files that you have to download are
+a few gigabytes or maybe like 5 to 10 gigabytes. So when you download this, this is going to be working. So I
+already have a realistic setup that I've done already. So it's using these safe sensors and all this stuff. So the next
+step is that you will be sending all these prompts and stuff to the API. So
+let me show it here. So this is the URL. So it says host docker internal
+host.docer.in internal. So this URL results to this. So for example, if I
+were to remove these numbers in front and just say local host and then you'll see that it
+Free AI Image Generation
+actually comes back here. So that workflow results to this. And what I'm going to do is actually go back on the
+page because I already have the realistic one set up here. So the next
+step would be that you configure the API. So how do you configure this API? The next step is to get this API
+request. Even before that, you need to specify the content type as application JSON. So, let's head to the API. So, for
+those of you who are in the community, you can just get it from here. But for those who aren't in there yet, so what
+I'm going to do is take you there and show it to you so you can take the screenshots. So, this is the URL, the
+header, and this is the actual JSON. So, this is the exact JSON representation of
+this page. So for example, if I were to enter some information in this JSON,
+it's going to cor some of it is going to correspond to this. Some of it is going to correspond to this. So if I enter the
+correct information to send here, so it's just going to trigger the workflow and I'm going to show it to you here. So
+the next step is that you can take this code the entire workflow and you can
+pause the video and you can see you have this entire workflow and we tell it everything. For example, I'm going to
+tell you the script as well. And let me show it to you in anything as well. So you have the firstly you have the
+prompts and stuff. Then you have the inputs. You load your save tensors. Then you enter your prompt. So you can see
+here our prompt is loaded. And then you have this file. So now what I'm going to do is click on test step. And now this
+is going to send request to my compy. And now you see it has started running.
+So now it's going to start generating images. based on these prompts that I just
+sent. So based on these two prompts, it's going to generate images. So it's already sent me back the prompt ID. So I
+can retrieve the images later. And I'm also going to show you the code for that. So what I'm going to do is that I
+have this weight set up at just 1 second. So if you have a very slow GPU, you can set it up to for example 30
+seconds or 1 minute. So the images are generated and you're ready to retrieve them. And the same for here. So, I'll
+show you the images when they're generated. So, I have an Nvidia GPU. So, for me, it's not going to take so long.
+So, what I'm going to do is actually put in 10 here and then test the set. So,
+then I'll have to wait 10 seconds. And you can just configure this according to your computer because after this is run,
+I can get the images information. And let me show you this tab. So, it actually goes ahead and according to the
+prompts we got, it fetches the image information. So, what I'm going to do is run this step now.
+and you'll see what it does. So, it went back to comfy UI and got all of these
+information. So, it got the exact prompt information, the seed information, how many steps are we doing to generate the
+image, how do we den noise it, all the kind of prompts. For example, you can see the prompts here and it just got
+everything including where the file is stored on my computer when it's running. So, I already have all the information
+here. So, what I'm going to do is I'm just going to skip this one second wait. So, this is just made to be fail safe.
+So just in case something happens, for example, if you're doing some heavy task on your computer and you have too much
+load, something doesn't work. So it still doesn't fail the workflow. So the next step would be to clean our image
+URLs. So we got all of this stuff, but we need the correct information out of this. So I'm going to add the code here,
+and you can actually take a look at the code. So you take all the inputs and you clean it up, and then you send back the
+exact URL where the file is stored. So you can take the screenshot for this. And I'm going to scroll it here. So you
+can take the end of it. Okay. So now we have that ready. What I'm going to do is
+head back to comfy UI and see our images. And you actually don't have to see it. You don't even have to run it. For example, if you close this tab here,
+it's still going to run in the background. So you don't have to open this every time. So what you actually need to do is just run the first command
+that I told you which is python main.py. And you don't even have to open anything. Then you can just keep it
+running here. And you can see it takes like serless time to make the images. So what I'm going to do now is head back to
+comfy and actually I'll run this node first then I'll head there just to show you how it's
+looking and now you can see what we have is we have the prompt ID we have the
+image name the file name that comi made and we have the URL where the file is stored so let's see the whole thing
+that's going on firstly we send it the information about the images that it needs to make so we just send it the
+prompts then we tell it to wait so we can get the image information right so image information is generated along the
+way when the image is started generating so it doesn't get generated like the next second so I will wait here and you
+can put like 10 seconds 5 seconds 2 seconds whatever works according to your computer then I just have it uh wait
+Building the Viral Ai Agent
+here just to be fail safe so we just don't get to the get generated images quickly and you can actually just remove
+this maybe so now this information comes here and then we clean the information and we get the URL for the images and
+then we do another wait just for maybe 1 second or 10 seconds according to your computer. You get the whole point. So
+now this is going to run. This is just one second and now it's ready. So let's head back to CompuI and see it. So here
+you can see it created our images. This is the first one and this is the second one. And you can see it took about 20
+seconds, 23 seconds. And even if this was closed, it's probably going to be happening a bit quicker. And you can
+write better prompts. And let me give you another hack what you should do. So if you want to create different kind of
+images, for example, you want a different style and the GPD didn't generate it for you. So I'm going to show you a hack. So what you should do
+is actually come here in Google and then you should actually take the
+screenshot for the images and then go back to chat
+GPT and paste it here and then ask I am trying to make an image with
+SDXL which is a stable diffusion XL model and write
+me the best prompt to make this
+image. And now it's going to write us a prompt. And here you can see we have an optimized
+prompt and you can actually feed information to this first like the image generation prompt as well. You can
+actually attach an image here. So so whatever you're targeting for the style is maintained. You can actually attach images here. So what I'm going to do is
+actually show you and the best thing about controlling Comfy UI is that you can just test whatever you want. You can
+add different kind of image generation stuff. You can make realistic images and
+I'll also let you in on a bold mine which is Civit AI. So this website
+contains all the different models, different training subsets, different loras and all that stuff. So now I'm at
+the homepage and you can see there are a million different models. So you can generate any kind of photo, video,
+you'll get the workflow. You can just copy it from here and go back there. And here you can see we were able to
+generate this image just by giving it a prompt. And it's pretty good. And what you can actually do is you can also
+generate low-level prompts. For example, you can generate a smaller prompt and then you can upscale it, which you can't
+normally do. So you just make a new node here and then we do all the stuff. You can just add different kind of nodes and
+it's like plug and play. You can add different things and get a different model and you can get different images. So now I run this node and see what
+exactly do I get. So after I'm fetching the images and here you can see I have two images here. So if I click view,
+this was the first one that I made which I made and this is the second one according to the prompts. And now what
+you can actually do is go ahead and upload these images to Google right. So
+I'm just going to run it here. So now I'll run it and this is another free method. So if you don't have even a
+medium level laptop and you don't have any money to run APIs, so what you can actually do is store all your
+pre-created images in drive and then fetch it from there and run this workflow. And this is pretty similar to
+this and I'm going to show it to you right here. So the next step is that we completed our Google Drive. So let's go
+here and see our images. And here you can see I have the statues whisper. So I have my images
+here. Now the next step will be to write our images to our local folder. So it
+actually goes here and gets stored here. And now it's going to complete running. So all my files are stored locally. And
+here you can see. So this is complete. So I've stored both our images locally.
+The next step would be to find the audio length. This step is extremely important. For example, if you're
+creating a video and you said there should be two images, but the entire
+setup of this video depend on how long the voice over is. So for example, if the script is 14 seconds instead of 16,
+suppose you gave AI the prompt that all the words you write should be outputed
+by the texttospech model in 16 second. But suppose the AI writes a smaller script like just one or two words less,
+then the voice over time will be different, right? So here you can see our exact voice over was 14 seconds and
+this is even and this isn't even exact. So we'll find out what exact is and so
+what are our plan is that we take the voice over and then we divide that time by the number of images. So our images
+are separated in equal time. So suppose you have a voice over of 10 seconds and
+you say that we want five images here then every image will be separated in the video by 2 seconds. Right? So let's
+see our audio length. So it took our audio file and it created that after you
+run this command. You can actually get this here as well. I'm going to show it to you. It is in local video audio generation.
+Perfect. So here's the audio length code, right? We can actually see it from here as well. So you run this command
+and what this does is you can take the audio which was our voice over and then
+you can get the length of it. So we know it's 14 seconds but it tells you exactly
+how much it is. It is 14.46596 seconds. Perfect. So now we
+have to get our video name. So we can actually enter all the information as we go ahead. Sometimes N10 loses cracks
+when there's like so much data going on. So I actually put it here. So just in case it doesn't lose track again. And
+now this node will run. And here you can see that we have our name again. The
+next step would be to calculate the video length. Here we have the audio length. Then we have to calculate the
+video length. And how we actually do it is here you can see this is not a whole number. So this is not like 14 or 15.
+This is very precise. So we can't just ask our images to be some random length.
+Then you'll have the images end up early, then a black screen with the audio or you'll have videos and the
+audio ends early. It won't be insane. So it's going to take this number divided by two and then takes the upper limit.
+So we have our images split equally in that time. So now you'll see this code running and here you'll see the output.
+So it's eight. So that's perfect. For example, if you have a you have 14 seconds of audio. So if you divide it by
+two, you get 7 point something seconds and you don't want to be exact in the precise range. So what you can do is
+take the division, you can divide it by two and round it up. So when you round it up, you get eight, right? So you can
+have a 16-second video from a 14.5 second audio. That's perfect. So now what I'm going to do is
+render the audio. And this is the command that renders it. So we use ffmpeg. So we tell it that this is our
+whole loop and it's going to take this much seconds which it gets from length
+and here you can see that I haven't added uh exact second from here. So what I'm going to do is remove it. I was
+testing something so I added here added it here. So what I'm going to do is add the length here. So you can see it's
+eight now right? This is how it's supposed to be. So earlier I was testing it so I removed it. Perfect. So now you
+say that you have to loop the first image for 8 seconds. And this is these are the images. This is the voice over
+and this is the video that it has to create. And I'm just adding a simple vignette filter. So those who don't know
+the vignette effect. So I'm going to show it to you that you can focus on the things when you have a vignette effect.
+For example, you can create this focus. And this is how most of the videos are done. For example, let me just show you
+stoic shorts videos. And here you can see they have a vignette effect. It's a bit dark at the
+edges. And here you can see the same stuff. So this is dark. This is dark. And you go you can go ahead and
+see the same stuff. So let's check this out. Right. So it also has kind of a
+vignette effect and specifically this. So here you see a strong vignette effect. So at the edges is darker. So
+that creates a contrast and you can see the image better. So this that's what this code is for. And we actually have
+every kind of um every kind of transition and overlay. For example, you
+see all these fire overlays here, right? So, let me show it to you. Fire
+overlays. So, all this stuff and the things you see flying in that people use Cap Cut for. So, we have the code for
+all of that in the community. So, what I'm going to do is use a simple vignette effect and render this video. And I've
+also added a fade in, a simple fade, so when the image transition, you notice a fade. So it doesn't just happen like
+roughly. And now you'll see it's going to start generating our video and it's going to give us our video back. So it
+took about 20 seconds maybe and it created our video. So here we have all
+the information about it. So let's try to get the data and put it back here. So now what I'm going to do is I'm going to
+store the video in our computer. So I got all the information. I got the video
+URL JSON. So what it tells you is that you have to store all the information at this specific location. So when you go
+here and if you go to videos you can see the statues whisper. Perfect. So now we have stored our video and you can also
+actually see here. So I'm going to click view in the shadowful this vignette effect. You can make this darker. You
+can add different overlays and video effects. So this is our raw it's the
+wise soul learns and you can add actually four or five images here that will be better right. So you can
+configure that by just changing the number of images here. So the next step would be to upload it to S3. So what is
+S3? So S3 is just a object store. For example, you store stuff in Google
+Drive. So I'm going to store the video in S3. So the reason I store this video in S3 rather than Google Drive is
+because this is not final because we still have to add subtitles and all that stuff. So what you actually do for
+creating this S3 is the same stuff we did earlier which is coming to mini.io
+and creating a bucket and I actually have created two buckets. One is this was the earlier bucket that we created
+the NCO kit. So this is used for creating subtitles and stuff but I also made another raw videos uh bucket. So
+this stores the actual raw videos. So here you can see the statues whisper. So I just created this video from here and
+it stores it there. Right? So it's actually rendering more stuff here and I actually have to stop it because it's
+just going to rewrite it. This shouldn't have run. So what I'm going to do is unplug this here because only one of
+these is supposed to run. Perfect. So now it had given us two files. So let's
+just go there and actually I'll just refresh it. So okay. So this was only supposed to run once. So now we have our
+video. The next step is to add our subtitles. So I've shown you everything
+here. The next step is to add the subtitles. And this is the URL that we're going to use. And at this URL we
+have the cocoa roll texttospech model which is running on CPU for me and you
+can run it on GPU but I didn't run it because it's pretty fast and I am using comy to generate images and not slow
+down the GPU. So this is the URL. These are the header parameters which is X API
+key and the key and this is the exact JSON. And what this does is it takes our
+video URL. So the video is stored in our mini IO. So it takes this URL which it
+calls from this and then these are the settings of the letters and you can change the subtitles. You can have
+different style as well. So you can have all the subtitles in one go. But I have selected the word by word style. So it's
+just going to pop every second so the people don't lose their focus. And then we have all this stuff. We have the
+color, the font family and everything going on here. And you can find this code here as well. So you have the URL,
+the headers and this is the JSON. So you have this section and then you have this section. So now what I want to do is run
+this step. So it's going to take our video file and then add the subtitles
+and then it's just going to give us back and then we're going to store it in S3 store and then then we're going to name
+it caption so we know it's final. So this is running. It's going to
+take around 20 seconds.
+So now our subtitles is so now we have this created. So you can see it gave us
+the response. So this is exactly where it's stored. So this is stored in as you can see the NCS toolkit. So it just
+stored it in the other bucket. So you can just go in the other bucket and you can see we have the caption videos. I've
+created many more before just to test it out. Test the agent. And now what we're going to do is fetch that video. And now
+you can see we are getting our video from here. And this is going to take a few
+seconds. And then I have this YouTube node configured. And if you want to know how you can configure these credentials
+and stuff, you can just head to the previous video that I showed you and you can configure the YouTube API as well.
+And then we're actually going to upload it to the Google Drive as well. So we
+have our video ready with subtitles as you can see captions. So what the next step would be to upload to YouTube, Tik
+Tok and Instagram. So I have these build configured for you. You can just plug and play, enter your username. So this
+is using upload post. So you can just head to the upload post website and create your account and you get 10 free
+uploads every month. And if you want to use the direct API, I'll add the videos
+for it soon. So you can see how you can pay no money and upload it to Tik Tok and Instagram as well. So I'm not going
+to upload it anywhere right now. What I'm going to do is upload it to Google Drive so I can see my files in the final
+render. And it's going to be named this. And actually I can even rename it. So I
+have a different name here, right? And actually so here you can see the name of the file is these random numbers which
+was the process ID. So I actually have this custom name. So it tells us the
+exact video we're making. So it was the the statues with whisper media. And here you can see the file was uploaded. So
+I'm going to head to the final renders and the statues
+whisper. And it's not actually loading. So what I'm going to do is download it
+just to show you. So here I've downloaded it. So I'm going to open it and I'll show you the video.
+In the shadow of the forum, a weathered statue of a forgotten emperor stood, its marble cracked by time. And you can
+configure this video however you want. You can put the subtitles up, down, whatever you want. Right now, I'm going to update the status of my Google sheet
+to published. So for this video now, it's going to show published here. So if I head back to Google Sheets, it's going
+to change this to published so I can keep track. So now to run this workflow I actually had to remove these wires
+because else this won't run as it took the input from all of these platforms. So I don't want to post on all these
+platform right now. So now this completed running so I'm going to head back to my Google Sheets and here you
+can see it's published right. So if any of these places published it so it's just going to run and I actually remove
+the wire so it's going to show published right. So that's the entire setup and you can create any kind of video from
+this. You can customize it. You can add different kind of voices from this. And if you want different voices, for
+example, this comes with a preset. For example, you can see the voice here. It comes with nine or 10 voices. If you
+want custom voices, you can head to the community and collaborate and ask me for them. So, we can train different kind of
+voices specifically to your needs and give it to you. And you can also get this entire workflow in the community.
+It's posted right now. So, if you want this entire workflow for free, if this video hits 1,000 likes, I'm going to put
+this workflow in the first pin comment in this video. Peace out.

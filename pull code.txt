@@ -1,0 +1,16 @@
+cd C:\Users\Shahid\Documents\GitHub\ChangeGUI
+git pull origin claude/analyze-chat-session-01HKhd4qmW4aWH5jgY8KGExm
+python complete_automation_gui.py
+
+git pull origin claude/ai-video-automation-dashboard-01QZ3g8UJcMHTr7sEC2cV2Su
+python complete_automation_gui.py
+
+
+
+
+git stash
+git pull origin claude/ai-video-automation-dashboard-01QZ3g8UJcMHTr7sEC2cV2Su
+git stash pop
+
+
+git pull origin claude/video-automation-fixes-01P6E1UkrZ9ckTbAJrRRF91E

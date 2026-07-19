@@ -1,0 +1,7 @@
+# =============================================================
+# Kokoro TTS — Local ONNX voice synthesis (no GPU needed)
+# =============================================================
+# Install only if you want to use the Kokoro TTS engine.
+# Run: pip install -r requirements_kokoro.txt
+
+kokoro-onnx>=0.2.0

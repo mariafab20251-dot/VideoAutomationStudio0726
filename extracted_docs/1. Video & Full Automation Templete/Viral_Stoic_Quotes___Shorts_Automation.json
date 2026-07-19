@@ -1,0 +1,1724 @@
+{
+  "name": "Viral Stoic Quotes | Shorts Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Idea & Script Generation & Voiceover\n",
+        "height": 400,
+        "width": 1360
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -600,
+        -200
+      ],
+      "id": "3f63c972-245b-4727-83c8-1b5e23af29c0",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-chat-v3-0324",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        20
+      ],
+      "id": "286a3cb0-fa6c-4e26-880e-be3df139a288",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "a1PAE54E7M2zE2dW",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Voiceover & Image Generation\n",
+        "height": 400,
+        "width": 1400,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        780,
+        -200
+      ],
+      "id": "a1241d7d-6877-4754-8b3d-9d0c38c1bd4c",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8188/prompt",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": {\n    \"3\": {\n      \"inputs\": {\n        \"seed\": 1082737866441459,\n        \"steps\": 30,\n        \"cfg\": 8,\n        \"sampler_name\": \"euler\",\n        \"scheduler\": \"normal\",\n        \"denoise\": 1,\n        \"model\": [\"4\", 0],\n        \"positive\": [\"6\", 0],\n        \"negative\": [\"7\", 0],\n        \"latent_image\": [\"5\", 0]\n      },\n      \"class_type\": \"KSampler\",\n      \"_meta\": { \"title\": \"KSampler\" }\n    },\n    \"4\": {\n      \"inputs\": {\n        \"ckpt_name\": \"realisticStockPhoto_v20.safetensors\"\n      },\n      \"class_type\": \"CheckpointLoaderSimple\",\n      \"_meta\": { \"title\": \"Load Checkpoint\" }\n    },\n    \"5\": {\n      \"inputs\": {\n        \"width\": 544,\n        \"height\": 960,\n        \"batch_size\": 1\n      },\n      \"class_type\": \"EmptyLatentImage\",\n      \"_meta\": { \"title\": \"Empty Latent Image\" }\n    },\n    \"6\": {\n      \"inputs\": {\n        \"text\": \"{{ $json.prompt }}\",\n        \"clip\": [\"4\", 1]\n      },\n      \"class_type\": \"CLIPTextEncode\",\n      \"_meta\": { \"title\": \"CLIP Text Encode (Prompt)\" }\n    },\n    \"7\": {\n      \"inputs\": {\n        \"text\": \"text, watermark, unrealistic, saturated, high contrast, big nose, painting, drawing, sketch, cartoon, anime, manga, render, CG, 3d, watermark, signature, label\",\n        \"clip\": [\"4\", 1]\n      },\n      \"class_type\": \"CLIPTextEncode\",\n      \"_meta\": { \"title\": \"CLIP Text Encode (Prompt)\" }\n    },\n    \"8\": {\n      \"inputs\": {\n        \"samples\": [\"3\", 0],\n        \"vae\": [\"4\", 2]\n      },\n      \"class_type\": \"VAEDecode\",\n      \"_meta\": { \"title\": \"VAE Decode\" }\n    },\n    \"9\": {\n      \"inputs\": {\n        \"filename_prefix\": \"ComfyUI\",\n        \"images\": [\"8\", 0]\n      },\n      \"class_type\": \"SaveImage\",\n      \"_meta\": { \"title\": \"Save Image\" }\n    }\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1660,
+        -120
+      ],
+      "id": "8cd3c1fd-4de9-4cb8-9fbb-7379866a2d41",
+      "name": "Generate Image Locally",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "content": "# Local Video, Audio Generation & Subtitles\n\n\n",
+        "height": 400,
+        "width": 1360,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -600,
+        220
+      ],
+      "id": "1bf06637-6545-4015-a721-29a11bbf70b3",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        40
+      ],
+      "id": "1092051c-b1bc-4c34-be05-b9388bfb4a58",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "a1PAE54E7M2zE2dW",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Post Video to YouTube, Instagram & TikTok\n\n\n",
+        "height": 400,
+        "width": 1400,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        780,
+        220
+      ],
+      "id": "afe30986-d0d4-4250-8c26-b8f6877634d5",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "# List of Transitions & Overlays\n\n### - Fading\n### - Blur\n### - Vignette\n### - All Direction Slide\n### - Zoom \n### - Ken Burns Effect \n### - Any Custom Overlay\n",
+        "height": 360,
+        "width": 460,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1700,
+        240
+      ],
+      "id": "f49099c5-584a-40c4-b974-be02c0386808",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"title\": \"\",\n  \"story\": \"\",\n  \"quote\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -60,
+        20
+      ],
+      "id": "e97b352d-9cc6-4fe1-8539-bc817b11d739",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={\n  \"prompt\": \"Write a single original stoic quote in the style of Marcus Aurelius or Seneca. Begin with a very short narrative hook (1–2 sentences), set in ancient Rome, followed by a single deep, reflective quote.\\n\\nAdd a short, poetic title (max 5 words) that captures the essence or emotion of the piece.\\n\\nRandomize the theme: choose from death, pride, discipline, humility, impermanence, glory, silence, duty, control, or time.\\n\\nRequirements:\\n- Entire piece (story + quote) must be under 45 words.\\n- Use Roman imagery (baths, temples, generals, scrolls, statues, etc).\\n- Sound timeless, wise, and stoic.\\n- Written in elevated but clear English.\\n\\nOutput as JSON with three fields:\\n{\\n  \\\"title\\\": \\\"<5-word title>\\\",\\n  \\\"story\\\": \\\"<short narrative setup>\\\",\\n  \\\"quote\\\": \\\"<stoic reflection>\\\"\\n}\\n\\nExample:\\n{\\n  \\\"title\\\": \\\"Victory Without Applause\\\",\\n  \\\"story\\\": \\\"A soldier returning from battle sat beneath a crumbling arch, silent in thought.\\\",\\n  \\\"quote\\\": \\\"The hardest victories are the ones no one sees—and yet they shape the soul most.\\\"\\n}\\n\\nNow generate one like this. Choose a theme at random.\"\n}\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        -240,
+        -120
+      ],
+      "id": "70bafc36-0e43-455c-beb6-eb70aef0d274",
+      "name": "Idea & Script",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8880/v1/audio/speech",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"kokoro\",\n  \"input\": \"{{ $json.Script }}\",\n  \"voice\": \"am_michael\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        -120
+      ],
+      "id": "bb52a3ed-3ea4-4199-b78f-725b667652bb",
+      "name": "Generate Voiceover"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Give me {{ $('Generate Voiceover').item.json['Number of Images'] }} in depth & detailed prompts to generate images based on this story and quote, the videos are stoic, ancient rome themed, like marcus aurelius and senenca, so make the images prompt that themed: \n{{ $('Idea & Script').item.json.output.story }}, \n{{ $('Idea & Script').item.json.output.quote }}, Only output prompt and the formatting should be like this: \nImage Prompt: ... Actual Prompt, and make sure there are no commas, quotation marks in the prompts. ",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1160,
+        -120
+      ],
+      "id": "50b30541-b879-491d-ac80-45f99eaf739c",
+      "name": "Image Generation Prompts"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.output;\n\nconst regex = /Image Prompt:\\s*(.*?)(?=Image Prompt:|$)/gs;\n\nconst imagePrompts = [];\nlet match;\n\nwhile ((match = regex.exec(input)) !== null) {\n  imagePrompts.push({ prompt: match[1].trim() });\n}\n\nreturn imagePrompts;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1480,
+        -120
+      ],
+      "id": "81458c03-a6ee-4ae8-831f-249acc703292",
+      "name": "Separate Prompts",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.image_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2020,
+        40
+      ],
+      "id": "377f3ea5-9e4a-43a9-a2b2-077e697f4a3c",
+      "name": "Get Generated Image",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1480,
+        40
+      ],
+      "id": "ae9fa2ec-6c18-43a5-81d5-4fdf3b7ba90f",
+      "name": "Wait1",
+      "webhookId": "48fa95be-8116-4e6e-8e7b-2653a87ae4ca"
+    },
+    {
+      "parameters": {
+        "url": "=http://host.docker.internal:8188/history/{{ $json.prompt_id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2020,
+        -120
+      ],
+      "id": "656d59bb-8b00-45dd-80a1-b853c478fb5a",
+      "name": "Get Images Info"
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputs = $input.all();\nconst result = [];\n\nfor (const item of inputs) {\n  const json = item.json;\n  for (const promptId in json) {\n    const data = json[promptId];\n    const filename = data.outputs?.['9']?.images?.[0]?.filename;\n\n    if (filename) {\n      result.push({\n        prompt_id: promptId,\n        filename: filename,\n        image_url: `http://host.docker.internal:8188/view?filename=${encodeURIComponent(filename)}&type=output`\n      });\n    }\n  }\n}\n\nreturn result.map(obj => ({ json: obj }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1660,
+        40
+      ],
+      "id": "4afd96dc-e3d2-4ba2-bb96-2b019e1fa001",
+      "name": "Image URLs"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1840,
+        40
+      ],
+      "id": "93a005be-c174-4ba0-8ef4-35dd208d75cb",
+      "name": "Wait",
+      "webhookId": "48fa95be-8116-4e6e-8e7b-2653a87ae4ca"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3d5606c6-6949-4461-a384-b0c16514df9f",
+              "name": "Video Keywords",
+              "value": "stoic, ancient rome, roman architecture",
+              "type": "string"
+            },
+            {
+              "id": "e613e2d7-24fe-4d33-9ef4-9621dd379df5",
+              "name": "Number of Images",
+              "value": 2,
+              "type": "number"
+            },
+            {
+              "id": "21f59bd3-486e-4321-80f3-559e0c0dee9b",
+              "name": "Time to Publish",
+              "value": "={{ $now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -400,
+        -120
+      ],
+      "id": "acb8a9b5-7b76-41ee-bf22-e9de776f375b",
+      "name": "Video Information"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9a6d0ee2-b4e7-4ee0-a49f-60a110ac2e47",
+              "name": "Video Title",
+              "value": "={{ $('Idea & Script').item.json.output.title }}",
+              "type": "string"
+            },
+            {
+              "id": "7278dade-2085-417a-9334-b00c274aa976",
+              "name": "Keywords",
+              "value": "={{ $('Video Information').item.json['Video Keywords'] }}",
+              "type": "string"
+            },
+            {
+              "id": "6c57a27c-3491-4b06-b508-0d45d66a9e9f",
+              "name": "Description",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "d01349c1-d23c-41b8-b1ef-dd3faec88de6",
+              "name": "Script",
+              "value": "={{ $('Idea & Script').item.json.output.story }}{{ $('Idea & Script').item.json.output.quote }}",
+              "type": "string"
+            },
+            {
+              "id": "6d9b0a50-ed4a-45aa-b62b-216b713f6195",
+              "name": "Number of Images",
+              "value": "={{ $('Video Information').item.json['Number of Images'] }}",
+              "type": "string"
+            },
+            {
+              "id": "ec66b78f-5996-4b23-8544-ae892e0996bc",
+              "name": "Time to Publish",
+              "value": "={{ $('Video Information').item.json['Time to Publish'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        420,
+        -120
+      ],
+      "id": "2c69d51d-6406-498f-b2d3-b8220e4eadeb",
+      "name": "Info to Sheets"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Based on the title of the shorts, keywords, Story & Quote write me a description for my youtube Video, it should be catchy:\n\nTitle:{{ $json.output.title }}\nStory & Quote: {{ $json.output.story }}, {{ $json.output.quote }}\nKeywords: {{ $('Video Information').item.json['Video Keywords'] }}\n\nDo not give me anything else, no formatting nothing else, just description, max 30 words. ",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        100,
+        -120
+      ],
+      "id": "0310a017-c5df-4a5a-ad84-1b635c915650",
+      "name": "Description Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        80,
+        20
+      ],
+      "id": "5a4fd3ec-b3f5-4b22-a186-a3463acd6bd6",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "a1PAE54E7M2zE2dW",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Rojlh1YfWkpuow18hOtW_j3_Ku43_cG6t-RlSCGj2Lk",
+          "mode": "list",
+          "cachedResultName": "Stoic_Shorts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Rojlh1YfWkpuow18hOtW_j3_Ku43_cG6t-RlSCGj2Lk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Rojlh1YfWkpuow18hOtW_j3_Ku43_cG6t-RlSCGj2Lk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Video Title": "={{ $('Info to Sheets').item.json['Video Title'] }}",
+            "Keywords": "={{ $('Info to Sheets').item.json.Keywords }}",
+            "Description": "={{ $('Info to Sheets').item.json.Description }}",
+            "Script": "={{ $('Info to Sheets').item.json.Script }}",
+            "Number of Images": "={{ $('Info to Sheets').item.json['Number of Images'] }}",
+            "Time To Publish": "={{ $('Info to Sheets').item.json['Time to Publish'] }}",
+            "Status": "Not Published"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Video Title",
+              "displayName": "Video Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Keywords",
+              "displayName": "Keywords",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Script",
+              "displayName": "Script",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Number of Images",
+              "displayName": "Number of Images",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Time To Publish",
+              "displayName": "Time To Publish",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        620,
+        20
+      ],
+      "id": "ccb71476-dd65-47e0-ba2d-f4ceb607ed9b",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WtbnkpnTO3El1oQe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "=voiceover_{{ $('Code').item.json.filename }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "=1ENYaAnwT4f8O5sr2PVXQqL-Go9TzJQto",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        820,
+        20
+      ],
+      "id": "44cdbae8-415e-4b2f-8746-7ec3b49b9806",
+      "name": "Google Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "AztgzKO3QtuTEPr4",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1840,
+        -120
+      ],
+      "id": "c103cba0-63c6-45ec-8cc1-48d2bc32cf14",
+      "name": "Wait2",
+      "webhookId": "4a7064aa-6c9e-4b07-8a2c-58279ca181ed"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c4b48b08-48d4-4525-9261-75b5dd7823d2",
+              "name": "Simple Fade",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -200,
+        280
+      ],
+      "id": "56077190-7c32-4238-8bc3-942efd0ffe95",
+      "name": "Select Transitions",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5b11d84f-b3e6-471d-b934-151ee6ac1883",
+              "name": "Flying Debris",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -40,
+        280
+      ],
+      "id": "61a27ccd-ca74-44a8-b87d-a32d0b2f6fa8",
+      "name": "Select Overlays",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawTitle = $input.first().json['Video Title'];\n\nconst cleanTitle = rawTitle\n  .toLowerCase()                              // lowercase everything\n  .replace(/['\"]/g, '')                       // remove apostrophes and quotes\n  .replace(/[^a-z0-9]+/g, '_')                // replace non-alphanumeric chars with _\n  .replace(/^_+|_+$/g, '');                   // trim leading/trailing underscores\n\nreturn {\n  filename: `${cleanTitle}`\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        20
+      ],
+      "id": "7cf66889-98b7-4008-a1b0-4e8366d33ea4",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=data/stoic_shorts/images/images_{{ $('Code').item.json.filename }}_{{ $itemIndex }}.png\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -540,
+        440
+      ],
+      "id": "c5096588-a183-44f8-b581-ef454447c45d",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=data/stoic_shorts/voiceovers/audio_{{ $('Code').item.json.filename }}.mp3",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        -120
+      ],
+      "id": "7fe63ba1-18d9-4056-a284-f102bc49df4c",
+      "name": "Read/Write Files from Disk1"
+    },
+    {
+      "parameters": {
+        "command": "=ffprobe -v quiet -of csv=p=0 -show_entries format=duration -i data/stoic_shorts/voiceovers/audio_{{ $('Code').item.json.filename }}.mp3\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -360,
+        440
+      ],
+      "id": "e0a3d21a-f4da-4e2c-9c9a-1732510a77e3",
+      "name": "Find Audio Length"
+    },
+    {
+      "parameters": {
+        "content": "# Available in the Commnuity",
+        "height": 140,
+        "width": 280,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        140,
+        260
+      ],
+      "id": "fe99d0dc-4a8d-4449-a41a-d03cd22bebc1",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=data/stoic_shorts/videos/video_{{ $('Get Video Name').item.json['Set Video Name'] }}.mp4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        320,
+        440
+      ],
+      "id": "fabdf7af-bb20-4cb1-837e-d46f9b57710b",
+      "name": "Read/Write Files from Disk2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8080/v1/video/caption",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "thekey"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"video_url\": \"http://host.docker.internal:9000/raw-videos/{{ $('Read/Write Files from Disk2').item.json.fileName }}\",\n    \"settings\": {\n        \"line_color\": \"#FFFFFF\",\n        \"word_color\": \"FFFF00\",\n        \"outline_color\": \"#000000\",\n        \"all_caps\": true,\n        \"max_words_per_line\": 10,\n        \"position\": \"bottom_center\",\n        \"alignment\": \"center\",\n        \"font_family\": \"Arial\",\n        \"font_size\": 96,\n        \"bold\": true,\n        \"italic\": false,\n        \"style\": \"word_by_word\",\n        \"outline_width\": 2,\n        \"shadow_offset\": 2\n    },\n    \"replace\": [\n        {\n            \"find\": \"um\",\n            \"replace\": \"\"\n        },\n        {\n            \"find\": \"like\",\n            \"replace\": \"\"\n        }\n    ],\n    \"id\": \"request-123\",\n    \"language\": \"en\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        440
+      ],
+      "id": "93c2d01e-1448-4034-bd4c-2ecbd7f13e84",
+      "name": "Add Subtitles"
+    },
+    {
+      "parameters": {
+        "command": "=ffmpeg \\\n  -loop 1 -t {{ $json.length }} -i data/stoic_shorts/images/images_{{ $('Get Video Name').item.json['Set Video Name'] }}_0.png? \\\n  -loop 1 -t {{ $json.length }} -i data/stoic_shorts/images/images_{{ $('Get Video Name').item.json['Set Video Name'] }}_1.png? \\\n  -i data/stoic_shorts/voiceovers/audio_{{ $('Get Video Name').item.json['Set Video Name'] }}.mp3 \\\n  -filter_complex \"\\\n    [0:v]scale=1080:1920[v0]; \\\n    [1:v]scale=1080:1920[v1]; \\\n    [v0][v1]concat=n=2:v=1[outv]; \\\n    [outv]vignette[outv2]\" \\\n  -map \"[outv2]\" -map 2:a \\\n  -shortest \\\n  -y data/stoic_shorts/videos/video_{{ $('Code').item.json.filename }}.mp4\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        140,
+        440
+      ],
+      "id": "e51f4de5-1fa2-4e84-b6f6-e3dc9597933d",
+      "name": "Render Video"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Find Audio Length').first().json.stdout;\n\nconst audio_len = Math.ceil(parseFloat(input)); \n\nconst result = Math.round(audio_len/2)\n\nreturn [{\n  length: result\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -40,
+        440
+      ],
+      "id": "3402750b-7dd7-4141-aa5b-0c342975fb05",
+      "name": "Video Length"
+    },
+    {
+      "parameters": {
+        "name": "=final_{{ $('Read/Write Files from Disk2').item.json.fileName }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1AnQ00_qdqVui3Ufh4BOahEYWfPbQ3_P_",
+          "mode": "list",
+          "cachedResultName": "Final_Renders",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1AnQ00_qdqVui3Ufh4BOahEYWfPbQ3_P_"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1000,
+        460
+      ],
+      "id": "f61b6888-1c50-462d-a5b6-1781626db34d",
+      "name": "Google Drive2",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "AztgzKO3QtuTEPr4",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "79c2d3be-d878-4b3b-929d-b76cd175c881",
+              "name": "Set Video Name",
+              "value": "={{ $('Code').item.json.filename }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -200,
+        440
+      ],
+      "id": "61973f44-52af-4793-9ad9-73bc843ae0cd",
+      "name": "Get Video Name"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "title": "={{ $('Info to Sheets').item.json['Video Title'] }}",
+        "regionCode": "US",
+        "categoryId": "28",
+        "options": {
+          "description": "={{ $('Info to Sheets').item.json.Description }}",
+          "tags": "={{ $('Info to Sheets').item.json.Keywords }}"
+        }
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        280
+      ],
+      "id": "7cedd9ab-ee48-4032-b1b5-7f89dc377fe8",
+      "name": "YouTube",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "JJFLk6nUGkdOSYOS",
+          "name": "YouTube account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "raw-videos",
+        "fileName": "={{ $json.fileName }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        540,
+        280
+      ],
+      "id": "ed8d47cb-855e-4e65-b511-7cf214754740",
+      "name": "S3",
+      "credentials": {
+        "s3": {
+          "id": "s7fqOJHfD5sP8rn2",
+          "name": "S3 account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "bucketName": "nca-toolkit",
+        "fileKey": "={{ $json.job_id }}_captioned.mp4"
+      },
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        820,
+        380
+      ],
+      "id": "d8e540b9-f881-45ac-9a7a-5bfebbba8d6d",
+      "name": "S31",
+      "credentials": {
+        "s3": {
+          "id": "s7fqOJHfD5sP8rn2",
+          "name": "S3 account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "=Images_{{ $('Code').item.json.filename }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1oRjIYchXEVE5PMzx6bL6cmHGlua1UA_B",
+          "mode": "list",
+          "cachedResultName": "Images",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1oRjIYchXEVE5PMzx6bL6cmHGlua1UA_B"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -540,
+        300
+      ],
+      "id": "3b469083-179e-4f95-9b3f-ef6d1cfd579e",
+      "name": "Google Drive1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "AztgzKO3QtuTEPr4",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.upload-post.com/api/upload",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Apikey [YOUR_API_KEY]"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "=[YOUR TITLE]"
+            },
+            {
+              "name": "user",
+              "value": "[YOUR USERNAME]"
+            },
+            {
+              "name": "platform[]",
+              "value": "tiktok"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "video",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        300
+      ],
+      "id": "2d5864af-bb8d-4d96-9eb0-f907c36d0a31",
+      "name": "Upload to TikTok1",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.upload-post.com/api/upload",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Apikey [YOUR_API_KEY]"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "title",
+              "value": "=[YOUR TITLE]"
+            },
+            {
+              "name": "user",
+              "value": "[YOUR USERNAME]"
+            },
+            {
+              "name": "platform[]",
+              "value": "instagram"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "video",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        480
+      ],
+      "id": "1a6c5ce4-51de-4127-b457-20d7ff28fb0a",
+      "name": "Upload to Instagram",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "content": "# Free Method\n",
+        "height": 260,
+        "width": 940,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -440,
+        640
+      ],
+      "id": "dbe06522-5b90-49aa-8118-736e0eb1cdba",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "command": "=ffprobe -v quiet -of csv=p=0 -show_entries format=duration -i data/stoic_shorts/voiceovers/audio_{{ $('Code').item.json.filename }}.mp3\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        720
+      ],
+      "id": "696f8074-5f5f-409d-86cc-f784a3c380b6",
+      "name": "Find Audio Length1"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=data/stoic_shorts/videos/video_{{ $('Get Video Name1').item.json['Set Video Name'] }}.mp4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        300,
+        720
+      ],
+      "id": "b3cad428-82a5-4617-82c0-c9853dd3ee10",
+      "name": "Read/Write Files from Disk3"
+    },
+    {
+      "parameters": {
+        "command": "=ffmpeg \\\n  -loop 1 -t 7 -i data/stoic_shorts/images/images_{{ $('Get Video Name1').item.json['Set Video Name'] }}_0.png? \\\n  -loop 1 -t 7 -i data/stoic_shorts/images/images_{{ $('Get Video Name1').item.json['Set Video Name'] }}_1.png? \\\n  -i data/stoic_shorts/voiceovers/audio_{{ $('Get Video Name1').item.json['Set Video Name'] }}.mp3 \\\n  -filter_complex \"\\\n    [0:v]scale=1080:1920[v0]; \\\n    [1:v]scale=1080:1920[v1]; \\\n    [v0][v1]concat=n=2:v=1[outv]; \\\n    [outv]vignette[outv2]\" \\\n  -map \"[outv2]\" -map 2:a \\\n  -shortest \\\n  -y data/stoic_shorts/videos/video_{{ $('Code').item.json.filename }}.mp4\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        120,
+        720
+      ],
+      "id": "ee04c4b2-3e08-4283-990f-9e951efcb072",
+      "name": "Render Video1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Find Audio Length1').first().json.stdout;\n\nconst audio_len = Math.ceil(parseFloat(input)); \n\nconst result = Math.round(audio_len/2)\n\nreturn [{\n  length: result\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -60,
+        720
+      ],
+      "id": "9559b88b-e90f-44b1-b8ae-20c2502b6417",
+      "name": "Video Length1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "79c2d3be-d878-4b3b-929d-b76cd175c881",
+              "name": "Set Video Name",
+              "value": "={{ $('Code').item.json.filename }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -220,
+        720
+      ],
+      "id": "b4a0fd3e-c93f-48dc-8a3a-a4a61bf8cc75",
+      "name": "Get Video Name1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -580,
+        -120
+      ],
+      "id": "5f8018b7-445d-446e-8938-078f2acd6e53",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1Rojlh1YfWkpuow18hOtW_j3_Ku43_cG6t-RlSCGj2Lk",
+          "mode": "list",
+          "cachedResultName": "Stoic_Shorts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Rojlh1YfWkpuow18hOtW_j3_Ku43_cG6t-RlSCGj2Lk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Rojlh1YfWkpuow18hOtW_j3_Ku43_cG6t-RlSCGj2Lk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Published"
+          },
+          "matchingColumns": [
+            "Status"
+          ],
+          "schema": [
+            {
+              "id": "Video Title",
+              "displayName": "Video Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Keywords",
+              "displayName": "Keywords",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Script",
+              "displayName": "Script",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Number of Images",
+              "displayName": "Number of Images",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Time To Publish",
+              "displayName": "Time To Publish",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1500,
+        380
+      ],
+      "id": "58f971d4-2ea5-4da6-bce2-d6e8a4cd62dc",
+      "name": "Update Status",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WtbnkpnTO3El1oQe",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Idea & Script",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image Locally": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Image Generation Prompts",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Idea & Script",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Idea & Script": {
+      "main": [
+        [
+          {
+            "node": "Description Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Voiceover": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read/Write Files from Disk1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Generation Prompts": {
+      "main": [
+        [
+          {
+            "node": "Separate Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separate Prompts": {
+      "main": [
+        [
+          {
+            "node": "Generate Image Locally",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Generated Image": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Drive1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Image URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Images Info": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Image URLs": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Get Generated Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Video Information": {
+      "main": [
+        [
+          {
+            "node": "Idea & Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Info to Sheets": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Description Agent": {
+      "main": [
+        [
+          {
+            "node": "Info to Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Description Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Generate Voiceover",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        []
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Get Images Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Transitions": {
+      "main": [
+        [
+          {
+            "node": "Select Overlays",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Overlays": {
+      "main": [
+        []
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Find Audio Length",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk1": {
+      "main": [
+        [
+          {
+            "node": "Image Generation Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Audio Length": {
+      "main": [
+        [
+          {
+            "node": "Get Video Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render Video": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Video Length": {
+      "main": [
+        [
+          {
+            "node": "Render Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk2": {
+      "main": [
+        [
+          {
+            "node": "S3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive2": {
+      "main": [
+        [
+          {
+            "node": "Update Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Subtitles": {
+      "main": [
+        [
+          {
+            "node": "S31",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Video Name": {
+      "main": [
+        [
+          {
+            "node": "Video Length",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "S3": {
+      "main": [
+        [
+          {
+            "node": "Add Subtitles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "S31": {
+      "main": [
+        [
+          {
+            "node": "Google Drive2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "YouTube",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Audio Length1": {
+      "main": [
+        [
+          {
+            "node": "Get Video Name1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render Video1": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Video Length1": {
+      "main": [
+        [
+          {
+            "node": "Render Video1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Video Name1": {
+      "main": [
+        [
+          {
+            "node": "Video Length1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk3": {
+      "main": [
+        []
+      ]
+    },
+    "Google Drive1": {
+      "main": [
+        []
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Video Information",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to TikTok1": {
+      "main": [
+        []
+      ]
+    },
+    "Upload to Instagram": {
+      "main": [
+        []
+      ]
+    },
+    "YouTube": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "719fd676-43e5-4f7b-8ce7-06d8a562684d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "32fdab2829dca27b8592d448f705b54fea5e086e57c20b1145da3ad543def8da"
+  },
+  "id": "lx6z9JRhmptpS8vU",
+  "tags": []
+}

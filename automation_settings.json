@@ -1,0 +1,167 @@
+{
+  "queue": [
+    {
+      "name": "Project_1",
+      "video_type": "shorts",
+      "script_source": "import",
+      "script_file": "E:/MyAutomations/TestAuotmation/Scripts/New Text Document.txt",
+      "template": "facts",
+      "voice_source": "kokoro",
+      "visual_source": "local",
+      "local_images_folder": "E:/MyAutomations/TestAuotmation/Media",
+      "num_videos": 1,
+      "publish": {
+        "youtube": false,
+        "tiktok": false,
+        "instagram": false,
+        "facebook": false
+      },
+      "add_captions": false,
+      "background_music": "",
+      "generate_thumbnail": true,
+      "status": "completed"
+    },
+    {
+      "name": "Project_1",
+      "video_type": "shorts",
+      "script_source": "import",
+      "script_file": "E:/MyAutomations/TestAuotmation/Scripts/New Text Document.txt",
+      "template": "facts",
+      "voice_source": "system",
+      "visual_source": "local",
+      "local_images_folder": "E:/MyAutomations/TestAuotmation/Media",
+      "num_videos": 1,
+      "publish": {
+        "youtube": false,
+        "tiktok": false,
+        "instagram": false,
+        "facebook": false
+      },
+      "add_captions": false,
+      "background_music": "",
+      "generate_thumbnail": true,
+      "status": "completed"
+    },
+    {
+      "name": "Project_1",
+      "video_type": "shorts",
+      "script_source": "import",
+      "script_file": "E:/MyAutomations/TestAuotmation/Scripts/New Text Document.txt",
+      "template": "stoic",
+      "voice_source": "kokoro",
+      "visual_source": "local",
+      "local_images_folder": "E:/MyAutomations/TestAuotmation/Media",
+      "num_videos": 1,
+      "publish": {
+        "youtube": false,
+        "tiktok": false,
+        "instagram": false,
+        "facebook": false
+      },
+      "add_captions": false,
+      "background_music": "",
+      "generate_thumbnail": true,
+      "status": "completed"
+    },
+    {
+      "name": "Project_1",
+      "video_type": "shorts",
+      "script_source": "import",
+      "script_file": "E:/MyAutomations/TestAuotmation/Scripts/New Text Document.txt",
+      "template": "facts",
+      "voice_source": "kokoro",
+      "visual_source": "local",
+      "local_images_folder": "E:/MyAutomations/TestAuotmation/Media",
+      "num_videos": 1,
+      "publish": {
+        "youtube": false,
+        "tiktok": false,
+        "instagram": false,
+        "facebook": false
+      },
+      "add_captions": false,
+      "background_music": "",
+      "generate_thumbnail": true,
+      "status": "completed"
+    },
+    {
+      "name": "Project_1",
+      "video_type": "shorts",
+      "script_source": "import",
+      "script_file": "E:/MyAutomations/TestAuotmation/Scripts/New Text Document.txt",
+      "template": "stoic",
+      "voice_source": "kokoro",
+      "visual_source": "local",
+      "local_images_folder": "E:/MyAutomations/TestAuotmation/Media",
+      "num_videos": 1,
+      "publish": {
+        "youtube": false,
+        "tiktok": false,
+        "instagram": false,
+        "facebook": false
+      },
+      "add_captions": false,
+      "background_music": "",
+      "generate_thumbnail": true,
+      "status": "completed"
+    },
+    {
+      "name": "Project_1",
+      "video_type": "shorts",
+      "script_source": "import",
+      "script_file": "E:/MyAutomations/TestAuotmation/Scripts/New Text Document.txt",
+      "template": "facts",
+      "voice_source": "kokoro",
+      "visual_source": "local",
+      "local_images_folder": "E:/MyAutomations/TestAuotmation/Media",
+      "num_videos": 1,
+      "publish": {
+        "youtube": false,
+        "tiktok": false,
+        "instagram": false,
+        "facebook": false
+      },
+      "add_captions": false,
+      "background_music": "",
+      "generate_thumbnail": true,
+      "status": "completed"
+    },
+    {
+      "name": "Project_1",
+      "video_type": "shorts",
+      "script_source": "import",
+      "script_file": "E:/MyAutomations/TestAuotmation/Scripts/New Text Document.txt",
+      "template": "facts",
+      "voice_source": "system",
+      "visual_source": "local",
+      "local_images_folder": "E:/MyAutomations/TestAuotmation/Media",
+      "num_videos": 1,
+      "publish": {
+        "youtube": false,
+        "tiktok": false,
+        "instagram": false,
+        "facebook": false
+      },
+      "add_captions": true,
+      "background_music": "",
+      "generate_thumbnail": true,
+      "status": "completed"
+    }
+  ],
+  "accounts": {
+    "youtube": [],
+    "tiktok": [],
+    "instagram": [],
+    "facebook": []
+  },
+  "output_dir": "E:/MyAutomations/TestAuotmation",
+  "video_quality": "medium",
+  "tts_engine": "neutts",
+  "kokoro_voice": "af_sarah - Female (American, Clear)",
+  "kokoro_quality": "mp3",
+  "neutts_voice": "jordanpeterson",
+  "voice_source": "cloud",
+  "visual_source": "comfyui",
+  "local_clips_folder": "",
+  "clip_duration": 0.0
+}

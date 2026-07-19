@@ -1,0 +1,13 @@
+# =============================================================
+# NeuTTS — Gradio-based voice cloning (needs NeuTTS server)
+# =============================================================
+# This installs ONLY the Python client that connects to a
+# running NeuTTS Gradio server.
+#
+# The NeuTTS server itself (VoiceModules/NeuTTS/) has SEPARATE
+# requirements — see VoiceModules/NeuTTS/requirements.txt
+#
+# Run: pip install -r requirements_neutts.txt
+
+gradio-client>=1.0.0
+librosa>=0.10.0

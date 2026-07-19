@@ -1,0 +1,9 @@
+# =============================================================
+# Qwen3-TTS — Local AI voice synthesis (GPU recommended)
+# =============================================================
+# Install only if you want to use the Qwen3-TTS engine.
+# Requires a GPU with CUDA support for reasonable performance.
+# Run: pip install -r requirements_qwen.txt
+
+torch>=2.0.0
+qwen-tts>=0.1.0

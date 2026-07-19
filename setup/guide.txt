@@ -1,0 +1,96 @@
+═══════════════════════════════════════════════════════════
+  ChangeGUI — Video Automation Tool — Setup Guide
+═══════════════════════════════════════════════════════════
+
+This guide has TWO steps:
+
+  STEP 1 — Download & install the required software yourself
+  STEP 2 — Run the batch files to install Python dependencies
+
+
+───────────────────────────────────────────────────────────
+STEP 1 — Required Software (download & install manually)
+───────────────────────────────────────────────────────────
+
+1.  Python 3.13.x  (64-bit)
+    └─ https://www.python.org/downloads/
+    └─ During installation, CHECK "Add Python to PATH"
+    └─ Verify: open Command Prompt and type:  python --version
+
+2.  FFmpeg
+    └─ Download from: https://github.com/BtbN/FFmpeg-Builds/releases
+    └─ Choose the "ffmpeg-master-latest-win64-gpl.zip" file
+    └─ Extract the zip, rename the folder to "ffmpeg"
+    └─ Move the folder to: C:\ffmpeg
+    └─ Add to PATH:
+         - Open Start → type "env" → Edit environment variables
+         - Under "System variables", find "Path" → Edit → New
+         - Add: C:\ffmpeg\bin
+         - Click OK, OK, OK
+    └─ Verify: open new Command Prompt and type:  ffmpeg -version
+
+3.  Git (optional, only if you want to clone the repo)
+    └─ https://git-scm.com/download/win
+
+4.  Microsoft Visual C++ Redistributable
+    └─ Many pip packages need C++ build tools
+    └─ Download from: https://aka.ms/vs/17/release/vc_redist.x64.exe
+    └─ Install it (just in case — usually already present on Windows 10/11)
+
+
+───────────────────────────────────────────────────────────
+STEP 2 — Install Python Dependencies
+───────────────────────────────────────────────────────────
+
+After installing Python and FFmpeg:
+
+  a) Place the "setup" folder and the entire ChangeGUI project
+     on the new PC (copy the whole folder).
+
+  b) Open Command Prompt as Administrator
+
+  c) Navigate to the setup folder:
+       cd C:\path\to\ChangeGUI\setup
+
+  d) Run the CORE installer (REQUIRED — everything needs this):
+       install_core.bat
+
+  e) Choose optional voice modules (run only what you need):
+
+       Module          Batch File                What it does
+       ──────────────  ───────────────────────  ──────────────────────
+       Edge TTS        (included in core)        Online Microsoft TTS
+       Kokoro TTS      install_kokoro.bat        Local ONNX voice (lighter)
+       Piper TTS       install_piper.bat          Native C++ voice (fastest)
+       Qwen3-TTS       install_qwen.bat          Local AI voice (needs GPU)
+       NeuTTS          install_neutts.bat        Gradio server voice
+
+  f) Close and re-open Command Prompt.
+
+  g) Run the tool:
+       cd C:\path\to\ChangeGUI
+       python complete_automation_gui.py
+
+
+───────────────────────────────────────────────────────────
+TROUBLESHOOTING
+───────────────────────────────────────────────────────────
+
+"pip is not recognized"
+  → Python was not added to PATH during installation
+  → Re-run Python installer and CHECK "Add Python to PATH"
+
+"ffmpeg not found" / moviepy errors
+  → FFmpeg is not in PATH
+  → Run:  where ffmpeg
+  → If not found, check the Step 1 instructions for adding C:\ffmpeg\bin
+
+"No module named ..."
+  → The batch file may have failed. Run it again as Administrator.
+  → Some packages need the Visual C++ Redistributable (Step 1 item 4)
+
+tkinter errors
+  → tkinter is built into Python. If missing, re-install Python and
+    make sure "tcl/tk and IDLE" is checked in the installer options.
+
+═══════════════════════════════════════════════════════════

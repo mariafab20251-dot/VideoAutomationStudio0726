@@ -1,0 +1,104 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temp files
+temp_neutts_tests/
+*.tmp
+*.bak
+*~
+
+# Claude Code
+.claude/
+
+# Environment
+.env
+
+# Generated / temp audio files
+_piper_preview.wav
+*TEMP_MPY_wvf_snd*
+
+# Scratch / profile / test scripts (prefixed with _)
+_profile_out/
+_backup_prompts_*/
+bkkkk/
+_check_*.py
+_fix_*.py
+_fix_*.txt
+_get_desc.py
+_read_transcript.py
+_update_prompt.py
+_verify*.py
+_verify*.txt
+_indent_*.txt
+_insertion_debug.txt
+_prompt_debug.txt
+_video_desc.txt
+_whisper_word_timestamps.py
+_tailcheck/
+scratch_*.wav
+thumbnail.png
+
+# Google Cloud service account keys — NEVER commit (contains private key)
+google_credentials/
+*-sa.json
+*service_account*.json
+
+# Large downloaded TTS model DATA (install per-machine via setup/*.bat).
+# Only the helper .py files at repo root are committed; model weights are not.
+VoiceModules/PiperTTS/
+VoiceModules/Qwen3-TTS/
+VoiceModules/KokoroTTS/
+VoiceModules/NeuTTS/
+VoiceModules/pytorch/
+*.onnx
+*.pt
+VoiceModules/**/*.bin
+
+# User content
+Background music/
+VoiceModules/New folder/
+
+# Windows reserved device name - can't be deleted via normal filesystem ops
+nul
+
+# User settings (personal, per-machine configuration)
+overlay_settings.json
+processing_paths.json
