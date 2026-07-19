@@ -76,6 +76,17 @@ _fix_all*
 _qwen_check*
 _test_*
 _read_transcript*
+bb_card_replacement.py
+compact_br_col_test.py
+test_*.png
+TestQuotes.txt
+_whisper_word_timestamps.py.disabled
+
+# Portable-specific extra setup files
+setup/install.bat
+setup/requirements-gpu.txt
+setup/requirements-optional.txt
+setup/requirements.txt
 bkkkk/
 _check_*.py
 _fix_*.py
