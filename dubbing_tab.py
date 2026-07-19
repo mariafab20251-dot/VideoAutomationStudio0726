@@ -90,10 +90,27 @@ class DubbingTabMixin:
                      anchor='w', pady=(2, 0))
 
         body = tk.Frame(tab, bg=AppStyles.BG_CARD)
-        body.pack(fill='both', expand=True, padx=20, pady=10)
+        body.pack(fill='both', expand=True, padx=20, pady=(10, 0))
+
+        # Scrollable canvas for the input cards (so they don't compete with log)
+        canvas = tk.Canvas(body, bg=AppStyles.BG_CARD, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(body, orient='vertical', command=canvas.yview)
+        scrollable = tk.Frame(canvas, bg=AppStyles.BG_CARD)
+        scrollable.bind('<Configure>',
+                        lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
+        canvas.create_window((0, 0), window=scrollable, anchor='nw')
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side='top', fill='both', expand=True)
+        scrollbar.pack(side='right', fill='y')
+
+        # Mousewheel scrolling
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), 'units')
+        canvas.bind_all('<MouseWheel>', _on_mousewheel)
+        tab.bind('<Destroy>', lambda e: canvas.unbind_all('<MouseWheel>'))
 
         # ── 1) Source video ────────────────────────────────────────────
-        vid_card = self._dub_card(body, '🎬 Source Video')
+        vid_card = self._dub_card(scrollable, '🎬 Source Video')
         row = tk.Frame(vid_card, bg=AppStyles.BG_CARD)
         row.pack(fill='x', padx=8, pady=6)
         self._dub_video_var = tk.StringVar(
@@ -115,7 +132,7 @@ class DubbingTabMixin:
                      command=_browse_video).pack(side='left')
 
         # ── 1b) Source language ────────────────────────────────────────
-        src_card = self._dub_card(body, '🔊 Source Language')
+        src_card = self._dub_card(scrollable, '🔊 Source Language')
         srow = tk.Frame(src_card, bg=AppStyles.BG_CARD)
         srow.pack(fill='x', padx=8, pady=6)
         tk.Label(srow, text='Video is in:', bg=AppStyles.BG_CARD,
@@ -135,7 +152,7 @@ class DubbingTabMixin:
                  font=('Segoe UI', 8, 'italic')).pack(side='left', padx=(8, 0))
 
         # ── 3) Target language ─────────────────────────────────────────
-        lang_card = self._dub_card(body, '🌐 Target Language')
+        lang_card = self._dub_card(scrollable, '🌐 Target Language')
         lrow = tk.Frame(lang_card, bg=AppStyles.BG_CARD)
         lrow.pack(fill='x', padx=8, pady=6)
         tk.Label(lrow, text='Dub into:', bg=AppStyles.BG_CARD,
@@ -156,7 +173,7 @@ class DubbingTabMixin:
                  font=('Segoe UI', 8, 'italic')).pack(side='left', padx=(8, 0))
 
         # ── 3) Output + mix controls ───────────────────────────────────
-        opt_card = self._dub_card(body, '⚙️ Options')
+        opt_card = self._dub_card(scrollable, '⚙️ Options')
 
         orow = tk.Frame(opt_card, bg=AppStyles.BG_CARD)
         orow.pack(fill='x', padx=8, pady=(6, 2))
@@ -240,7 +257,7 @@ class DubbingTabMixin:
 
         # ── 4) Run button + progress ───────────────────────────────────
         run_row = tk.Frame(body, bg=AppStyles.BG_CARD)
-        run_row.pack(fill='x', pady=(6, 4))
+        run_row.pack(fill='x', pady=(4, 2))
         self._dub_run_btn = ModernButton(
             run_row, text='▶  Dub Video', bg_color=AppStyles.ACCENT_SUCCESS,
             hover_color='#059669', font=('Segoe UI', 11, 'bold'),

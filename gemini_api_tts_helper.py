@@ -218,11 +218,21 @@ def get_voice_keys(cloud: bool = False) -> list[str]:
 # ── Auth helpers ───────────────────────────────────────────────────────
 
 
+_TOKEN_CACHE: dict[str, tuple[str, float]] = {}  # path → (token, expiry)
+
 def _get_bearer_token(service_account_path: str) -> str:
     """Get an OAuth2 Bearer token from a service account JSON file.
 
+    Tokens are cached per path and auto-refreshed when they expire (1h).
     Requires: pip install google-auth
     """
+    import time as _time
+    _now = _time.time()
+    _cached = _TOKEN_CACHE.get(service_account_path)
+    # Tokens are valid ~1h; refresh after 50 min to be safe.
+    if _cached and (_now - _cached[1]) < 3000:
+        return _cached[0]
+
     try:
         from google.oauth2 import service_account
         from google.auth.transport.requests import Request
@@ -237,6 +247,7 @@ def _get_bearer_token(service_account_path: str) -> str:
         scopes=["https://www.googleapis.com/auth/cloud-platform"],
     )
     creds.refresh(Request())
+    _TOKEN_CACHE[service_account_path] = (creds.token, _now)
     return creds.token
 
 
@@ -359,18 +370,34 @@ def translate_text(
     }
 
     # Prefer API key (simplest); fall back to service-account bearer token.
+    # Service-account tokens ONLY work with the Vertex AI endpoint, not the
+    # free Gemini API — so we switch to the Vertex AI host when using one.
     headers = {"Content-Type": "application/json"}
-    url = f"{API_BASE}/models/{model}:generateContent"
+    is_vertex = False
     if api_key:
+        url = f"{API_BASE}/models/{model}:generateContent"
         url = f"{url}?key={api_key}"
     elif sa_path:
         try:
             token = _get_bearer_token(sa_path)
             headers["Authorization"] = f"Bearer {token}"
+            # Read the Vertex project-id from the service-account JSON.
+            _project_id = _get_project_id(sa_path)
+            if _project_id:
+                url = (f"https://us-central1-aiplatform.googleapis.com"
+                       f"/v1/projects/{_project_id}/locations/us-central1"
+                       f"/publishers/google/models/{model}:generateContent")
+                is_vertex = True
+            else:
+                return False, "service-account JSON has no project_id"
         except Exception as exc:
             return False, f"auth failed: {exc}"
     else:
         return False, "no gemini_api_key or service account configured"
+
+    # Vertex AI requires role: "user" on content parts
+    if is_vertex:
+        payload["contents"][0]["role"] = "user"
 
     ok, data, err = _http_post(url, payload, headers, timeout)
     if not ok:
@@ -452,17 +479,30 @@ def translate_lines(
     }
 
     headers = {"Content-Type": "application/json"}
-    url = f"{API_BASE}/models/{model}:generateContent"
+    is_vertex = False
     if api_key:
+        url = f"{API_BASE}/models/{model}:generateContent"
         url = f"{url}?key={api_key}"
     elif sa_path:
         try:
             token = _get_bearer_token(sa_path)
             headers["Authorization"] = f"Bearer {token}"
+            _project_id = _get_project_id(sa_path)
+            if _project_id:
+                url = (f"https://us-central1-aiplatform.googleapis.com"
+                       f"/v1/projects/{_project_id}/locations/us-central1"
+                       f"/publishers/google/models/{model}:generateContent")
+                is_vertex = True
+            else:
+                return False, "service-account JSON has no project_id"
         except Exception as exc:
             return False, f"auth failed: {exc}"
     else:
         return False, "no gemini_api_key or service account configured"
+
+    # Vertex AI requires role: "user" on content parts
+    if is_vertex:
+        payload["contents"][0]["role"] = "user"
 
     ok, data, err = _http_post(url, payload, headers, timeout)
     # Free-tier per-minute quota (HTTP 429) — honor Gemini's "retry in Xs" hint
@@ -770,7 +810,7 @@ def generate_speech(
         service_account_path   — Path to SA JSON key file (optional)
         use_cloud_tts          — True=Cloud TTS, False=Gemini TTS (default)
         gemini_tts_voice       — Gemini TTS voice (default Zephyr)
-        gemini_tts_model       — Gemini model (default gemini-2.5-pro-preview-tts)
+        gemini_tts_model       — Gemini model (default gemini-2.5-flash-tts)
         gemini_tts_speed       — Speed multiplier (1.0)
         cloud_tts_voice        — Cloud TTS voice (default en-US-Studio-Q)
 

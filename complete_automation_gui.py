@@ -10591,7 +10591,6 @@ class VideoAutomationGUI(DubbingTabMixin, ThumbnailTabMixin):
                                                 'gemini-3.1-flash-tts-preview',
                                                 'gemini-2.5-flash-tts',
                                                 'gemini-2.5-pro-tts',
-                                                'gemini-2.5-flash-lite-tts',
                                             ],
                                             state='readonly',
                                             font=('Segoe UI', 8), width=40)

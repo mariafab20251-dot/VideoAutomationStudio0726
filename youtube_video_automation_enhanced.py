@@ -5838,7 +5838,7 @@ class TTSGenerator:
             {
                 'gemini_api_key': settings.get('gemini_api_key', ''),
                 'gemini_tts_voice': settings.get('gemini_tts_voice', 'Zephyr'),
-                'gemini_tts_model': settings.get('gemini_tts_model', 'gemini-2.5-pro-preview-tts'),
+                'gemini_tts_model': settings.get('gemini_tts_model') or 'gemini-2.5-flash-tts',
                 'gemini_tts_speed': settings.get('gemini_tts_speed', 1.0),
                 'service_account_path': settings.get('service_account_path', ''),
                 'use_cloud_tts': settings.get('use_cloud_tts', False),
