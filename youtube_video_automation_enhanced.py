@@ -5297,7 +5297,9 @@ class TTSGenerator:
 
             # Generate audio — chunk long text to avoid kokoro_onnx index-out-of-bounds
             # when phonemes exceed 510 characters (common for CJK languages)
-            # Auto-detect language from voice prefix
+            # The kokoro_onnx library truncates phonemes to 510 but then
+            # IndexError on voice[len(tokens)] at the boundary, so we also
+            # guard with a binary-split retry for robustness.
             _voice_prefix = voice.split('_')[0].lower() if '_' in voice else ''
             _lang_map = {
                 'af': 'en-us', 'am': 'en-us',
@@ -5314,9 +5316,39 @@ class TTSGenerator:
             if _kokoro_lang != 'en-us':
                 print(f"  [INFO] Kokoro auto-detected language '{_kokoro_lang}' from voice prefix '{_voice_prefix}'")
 
+            def _kokoro_create_safe(_k, _txt, _v, _sp, _lg):
+                """Call kokoro.create with fallback—split in half if IndexError (phoneme OOB)."""
+                try:
+                    _p, _sr = _k.create(text=_txt, voice=_v, speed=_sp, lang=_lg)
+                    return _p
+                except (IndexError, ValueError) as _e:
+                    # Phoneme overflow — split in half and retry each half
+                    _mid = len(_txt) // 2
+                    # Break at nearest space boundary
+                    for _j in range(_mid, min(_mid + 30, len(_txt))):
+                        if _txt[_j] in (' ', '\n', ',', '.'):
+                            _mid = _j
+                            break
+                    _a, _b = _txt[:_mid].strip(), _txt[_mid:].strip()
+                    if not _a or not _b:
+                        # Can't split further — give up
+                        print(f"  [WARN] Kokoro phoneme OOB, can't split further: {_e}")
+                        return None
+                    print(f"  [INFO] Kokoro phoneme OOB — split chunk ({len(_txt)}→{len(_a)}+{len(_b)})")
+                    _pa = _kokoro_create_safe(_k, _a, _v, _sp, _lg)
+                    _pb = _kokoro_create_safe(_k, _b, _v, _sp, _lg)
+                    if _pa is not None and _pb is not None:
+                        import numpy as np
+                        return np.concatenate([_pa, _pb])
+                    if _pa is not None:
+                        return _pa
+                    if _pb is not None:
+                        return _pb
+                    return None
+
             # Split text into chunks to stay under the 510-phoneme limit
             # (CJK languages produce ~10-17 phonemes/char, English ~3-5)
-            _max_chunk = 40 if _kokoro_lang in ('ja', 'zh', 'ko') else 200
+            _max_chunk = 40 if _kokoro_lang in ('ja', 'zh', 'ko') else 100
             if len(clean_text) > _max_chunk:
                 _segments = re.split(r'(?<=[。！？.!?\n])', clean_text)
                 _chunks = []
@@ -5341,12 +5373,9 @@ class TTSGenerator:
                 if not _chunk:
                     continue
                 print(f"  [INFO] Kokoro chunk {_ci + 1}/{len(_chunks)} ({len(_chunk)} chars)")
-                _part, _sr = kokoro.create(
-                    text=_chunk,
-                    voice=voice,
-                    speed=speed,
-                    lang=_kokoro_lang,
-                )
+                _part = _kokoro_create_safe(kokoro, _chunk, voice, speed, _kokoro_lang)
+                if _part is None:
+                    raise RuntimeError(f"Kokoro chunk {_ci} failed after splitting")
                 _audio_parts.append(_part)
 
             if not _audio_parts:
