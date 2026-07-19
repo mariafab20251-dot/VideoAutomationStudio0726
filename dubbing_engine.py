@@ -288,8 +288,13 @@ def build_dubbed_audio(video_path: Path, out_mp3: Path, target_language: str,
     out_mp3 = Path(out_mp3)
 
     tgt = (target_language or '').strip()
-    if not tgt or tgt.lower() in ('english', 'en', 'en-us', 'en-gb'):
-        log('warn', 'Dub: target language is English — nothing to translate/dub')
+    src = (source_language or '').strip().lower()
+    if not tgt:
+        log('warn', 'Dub: target language is empty — nothing to translate/dub')
+        return None
+    # Skip if source and target are the same English variant (nothing to translate)
+    if tgt.lower() in ('english', 'en', 'en-us', 'en-gb') and src in ('english', 'en', 'en-us', 'en-gb', ''):
+        log('warn', 'Dub: source and target are both English — nothing to translate/dub')
         return None
 
     try:

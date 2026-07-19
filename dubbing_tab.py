@@ -51,7 +51,7 @@ def _styles():
 
 # Language menu — label shown to the user is what gets sent to the translator.
 DUB_LANGUAGES = [
-    'Urdu', 'Hindi', 'Arabic', 'Spanish', 'French', 'German', 'Italian',
+    'English', 'Urdu', 'Hindi', 'Arabic', 'Spanish', 'French', 'German', 'Italian',
     'Portuguese', 'Indonesian', 'Malay', 'Turkish', 'Russian', 'Persian',
     'Bengali', 'Punjabi', 'Tamil', 'Telugu', 'Japanese', 'Korean',
     'Chinese', 'Vietnamese', 'Thai',
