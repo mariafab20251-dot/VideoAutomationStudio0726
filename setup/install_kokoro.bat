@@ -5,6 +5,21 @@ echo ============================================================
 echo  Installing Kokoro TTS (local ONNX voice)
 echo ============================================================
 echo.
+
+set "KOKORO_DIR=%~dp0..\VoiceModules\KokoroTTS"
+
+REM Check if already installed
+if exist "%KOKORO_DIR%\kokoro-v0_19.onnx" if exist "%KOKORO_DIR%\voices-v1.0.bin" (
+    pip show kokoro-onnx >nul 2>&1
+    if not errorlevel 1 (
+        echo [SKIP] Kokoro TTS already fully installed. Nothing to do.
+        echo.
+        pause
+        exit /b 0
+    )
+)
+
+echo.
 echo  This adds Kokoro TTS support — voice synthesis runs
 echo  locally on your PC using ONNX runtime (no GPU needed).
 echo.

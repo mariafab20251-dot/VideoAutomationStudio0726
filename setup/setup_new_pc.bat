@@ -4,38 +4,34 @@ echo ============================================
 echo  Video Automation Studio — New PC Setup
 echo ============================================
 echo.
-echo This will set up a fresh Python virtual environment
+echo This will set up a Python virtual environment
 echo and install dependencies for this tool.
 echo.
 echo Step 1/4: Virtual environment
 echo ------------------------------
 if exist ".venv" (
-    echo [RENAME] Old .venv found — renaming to .venv_old
-    ren ".venv" ".venv_old"
+    echo [SKIP] .venv already exists — keeping it.
+) else (
+    echo [CREATE] Creating new virtual environment...
+    python -m venv .venv
     if errorlevel 1 (
-        echo [ERROR] Could not rename .venv. Close any programs using it and retry.
+        echo [ERROR] Failed to create venv. Is Python installed?
         pause
         exit /b 1
     )
+    echo [OK] Virtual environment created.
 )
-echo [CREATE] Creating new virtual environment...
-python -m venv .venv
-if errorlevel 1 (
-    echo [ERROR] Failed to create venv. Is Python installed?
-    pause
-    exit /b 1
-)
-echo [OK] Virtual environment created.
 
 echo.
 echo Step 2/4: Install core dependencies
 echo ------------------------------------
 call .venv\Scripts\activate.bat
-pip install -r setup\requirements_core.txt
+echo [CHECK] Checking core dependencies...
+pip install --upgrade -r setup\requirements_core.txt >nul 2>&1
 if errorlevel 1 (
     echo [WARN] Some core dependencies may have failed — check above.
 ) else (
-    echo [OK] Core dependencies installed.
+    echo [OK] Core dependencies installed / up to date.
 )
 
 echo.

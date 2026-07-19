@@ -5,6 +5,19 @@ echo ============================================================
 echo  Installing Piper TTS (Lightweight ONNX voice engine)
 echo ============================================================
 echo.
+
+set PIPER_DIR=%~dp0..\VoiceModules\PiperTTS
+set BIN_DIR=%PIPER_DIR%\bin
+
+REM Check if already installed
+if exist "%BIN_DIR%\piper.exe" (
+    echo [SKIP] Piper TTS already installed (piper.exe found).
+    echo.
+    pause
+    exit /b 0
+)
+
+echo.
 echo  This downloads the Piper TTS engine + a default voice model.
 echo  Total size: ~75 MB (engine ~15 MB + voice ~60 MB)
 echo.
