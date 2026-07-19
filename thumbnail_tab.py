@@ -531,7 +531,12 @@ class ThumbnailTabMixin:
                 out = str(Path(video).with_name(
                     f'{Path(video).stem}_thumbnail.png'))
             else:
-                out = str(Path.cwd() / 'thumbnail.png')
+                # Use video ID from settings as fallback
+                vid_id = (self.settings.get('our_script_video_id') or '').strip()
+                if vid_id:
+                    out = str(Path.cwd() / f'{vid_id}_thumbnail.png')
+                else:
+                    out = str(Path.cwd() / 'thumbnail.png')
 
         model_label = self._th_model_var.get()
         model_id = thumbnail_designer.MODELS.get(
