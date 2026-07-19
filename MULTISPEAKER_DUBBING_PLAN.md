@@ -69,35 +69,56 @@ Keys from `GEMINI_TTS_VOICES` with tone labels. Useful for auto-suggesting by ge
 
 ---
 
-## 2. One-time setup the USER must do (blocker for diarization)
+## 2. One-time setup — ✅ ALREADY DONE (do NOT redo)
 
-Diarization models are **gated** on Hugging Face. Before Phase 1 diarization can run, the user must:
+All of the user-side setup below is **complete as of 2026-07-19**. The implementing model does
+**not** need to ask the user to do any of this — it's finished and verified.
 
-1. Create a free HF account: https://huggingface.co/join
-2. Generate a **read** token: https://huggingface.co/settings/tokens → "New token" → type **Read**.
-3. Accept the license on **both** gated model pages (must be logged in, click "Agree"):
-   - https://huggingface.co/pyannote/segmentation-3.0
-   - https://huggingface.co/pyannote/speaker-diarization-3.1
-4. The token gets stored in settings as `hf_token` (Phase 3 adds a field; until then it can be
-   set manually in `overlay_settings.json` or via env var `HF_TOKEN`).
+- ✅ Free HF account created.
+- ✅ **Read** token generated and stored in `overlay_settings.json` under key `hf_token`
+  (gitignored — never commit it, never echo its value).
+- ✅ Licenses **accepted** on both gated pages (verified: both return HTTP 200 with the token):
+  - https://huggingface.co/pyannote/segmentation-3.0
+  - https://huggingface.co/pyannote/speaker-diarization-3.1
+- ✅ All diarization model files **downloaded and staged locally** (see below).
 
-**If the user hasn't done this, diarization returns HTTP 401/403 → we fall back to single-voice.**
+### Models are BUNDLED LOCALLY — do NOT download, do NOT use the HF cache
 
-### Downloads (unstable internet → prefer manual)
-- `pip install whisperx` pulls the code + `pyannote.audio`, `faster-whisper` (already have), `ctranslate2`, `silero-vad`. See §6 for the install command.
-- The pyannote **model weights** (~1 GB total) are gated, so a plain browser/IDM URL returns **401** —
-  they can't be grabbed anonymously. Two options for the model files:
-  - **Preferred:** let `huggingface_hub` download them on first diarization run with the token set
-    (`HF_TOKEN`). It **resumes** partial downloads, so unstable internet is survivable.
-  - **IDM with auth header:** IDM → Add URL → add HTTP header `Authorization: Bearer hf_xxx`.
-    Files:
-    - `https://huggingface.co/pyannote/segmentation-3.0/resolve/main/pytorch_model.bin`
-    - `https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM/resolve/main/pytorch_model.bin` (ungated, direct)
-    - plus the small `config.yaml` from `speaker-diarization-3.1` and `segmentation-3.0`.
-  - Files land in `C:\Users\shahi\.cache\huggingface\hub\`. Once cached, works offline.
+The diarization models (**~32 MB total**, not 1 GB — earlier estimate was wrong) are already
+staged in the repo under `models/pyannote/` (gitignored, travels with the portable folder like
+`models/whisper/`):
 
-> **Implementing model:** do NOT try to auto-download these in code without a token. Detect absence,
-> log a clear message telling the user to do §2, and fall back.
+```
+models/pyannote/segmentation-3.0/config.yaml
+models/pyannote/segmentation-3.0/pytorch_model.bin          (5.9 MB)
+models/pyannote/speaker-diarization-3.1/config.yaml         (pipeline config; no weights)
+models/pyannote/wespeaker-voxceleb-resnet34-LM/config.yaml
+models/pyannote/wespeaker-voxceleb-resnet34-LM/pytorch_model.bin   (26.6 MB)
+```
+
+**CRITICAL implementation detail — load pyannote from these LOCAL paths, not by model-ID.**
+pyannote's default `Pipeline.from_pretrained("pyannote/speaker-diarization-3.1", use_auth_token=...)`
+downloads from HF by ID into the user cache. We do NOT want that (portability + offline). Instead:
+
+1. Locate the bundled dir: `<repo>/models/pyannote/` (resolve relative to the script file).
+2. If it exists, load from the **local** `speaker-diarization-3.1/config.yaml`, and REWRITE that
+   config's `embedding:` and `segmentation:` fields (currently the HF IDs
+   `pyannote/wespeaker-voxceleb-resnet34-LM` and `pyannote/segmentation-3.0`) to point at the local
+   sub-folders before instantiating the pipeline. (WhisperX's `DiarizationPipeline` wraps
+   `pyannote.audio.Pipeline`; you may need to build the `pyannote.audio.Pipeline` directly from the
+   local config and hand it to WhisperX, or call pyannote diarization directly then map speakers to
+   words with `whisperx.assign_word_speakers`.)
+3. Only if the bundled dir is ABSENT: fall back to `from_pretrained(<id>, use_auth_token=hf_token)`
+   (which will download to cache) — and log that this needs internet + the token.
+
+**If anything diarization-related fails (missing bundle AND no token, load error, etc.) → log a
+clear reason and fall back to single-voice transcription. Never crash the dub.**
+
+### Still required: install the whisperx PACKAGE
+
+The models are staged, but the **code** isn't installed yet. `pip install whisperx` pulls whisperx +
+`pyannote.audio` + `ctranslate2` + `silero-vad` (`faster-whisper` already present). See §6. This is a
+code/pip install, separate from the model weights above.
 
 ---
 
