@@ -170,6 +170,67 @@ GEMINI_TTS_VOICES: dict[str, str] = {
     "Sulafat": "Sulafat — Warm",
 }
 
+# Gender per Gemini TTS voice (from Google's Gemini-TTS voice table).
+GEMINI_VOICE_GENDER: dict[str, str] = {
+    "Zephyr": "Female", "Charon": "Male", "Fenrir": "Male", "Puck": "Male",
+    "Kore": "Female", "Leda": "Female", "Orus": "Male", "Aoede": "Female",
+    "Callirrhoe": "Female", "Autonoe": "Female", "Enceladus": "Male",
+    "Iapetus": "Male", "Umbriel": "Male", "Algieba": "Male", "Despina": "Female",
+    "Erinome": "Female", "Algenib": "Male", "Rasalgethi": "Male",
+    "Laomedeia": "Female", "Achernar": "Female", "Alnilam": "Male",
+    "Schedar": "Male", "Gacrux": "Female", "Pulcherrima": "Female",
+    "Achird": "Male", "Zubenelgenubi": "Male", "Vindemiatrix": "Female",
+    "Sadachbia": "Male", "Sadaltager": "Male", "Sulafat": "Female",
+}
+
+
+def get_voice_gender(key: str) -> str:
+    """Return 'Male'/'Female' for a Gemini voice key, or '' if unknown."""
+    return GEMINI_VOICE_GENDER.get(key, "")
+
+
+# Best-use hint per Gemini voice — a short "what this voice is good for" tag,
+# derived from Google's own one-word descriptor (see GEMINI_TTS_VOICES).  Shown
+# in the voice dropdowns so voices aren't picked blind.  Tone/emotion itself can
+# still be steered per line via the ``gemini_tts_prompt`` style field.
+GEMINI_VOICE_USE: dict[str, str] = {
+    "Zephyr": "bright · lifestyle/cheerful",
+    "Charon": "informative · news/explainer",
+    "Fenrir": "excitable · hype/energetic",
+    "Puck": "upbeat · ads/reactions",
+    "Kore": "firm · authority/motivation",
+    "Leda": "youthful · lifestyle/bright",
+    "Orus": "firm · authority/corporate",
+    "Aoede": "breezy · casual/podcast",
+    "Callirrhoe": "easy-going · podcast/chat",
+    "Autonoe": "bright · cheerful/upbeat",
+    "Enceladus": "breathy · calm/soft",
+    "Iapetus": "clear · explainer/tutorial",
+    "Umbriel": "easy-going · podcast/chat",
+    "Algieba": "smooth · luxury/late-night",
+    "Despina": "smooth · luxury/late-night",
+    "Erinome": "clear · news/explainer",
+    "Algenib": "gravelly · documentary/gravitas",
+    "Rasalgethi": "informative · news/anchor",
+    "Laomedeia": "upbeat · energetic/ads",
+    "Achernar": "soft · calm/meditation/ASMR",
+    "Alnilam": "firm · motivation/authority",
+    "Schedar": "even · documentary/steady",
+    "Gacrux": "mature · story/documentary",
+    "Pulcherrima": "forward · punchy/motivation",
+    "Achird": "friendly · podcast/conversational",
+    "Zubenelgenubi": "casual · podcast/vlog",
+    "Vindemiatrix": "gentle · storytelling/calm",
+    "Sadachbia": "lively · energetic/fun",
+    "Sadaltager": "knowledgeable · explainer/educational",
+    "Sulafat": "warm · storytelling/narration",
+}
+
+
+def get_voice_use(key: str) -> str:
+    """Return the best-use hint for a Gemini voice key, or '' if unknown."""
+    return GEMINI_VOICE_USE.get(key, "")
+
 # ── Cloud TTS voices (popular English) ─────────────────────────────────
 CLOUD_TTS_VOICES: dict[str, str] = {
     "en-US-Studio-Q": "Studio Q (US English, Male, Warm)",
@@ -462,12 +523,18 @@ def translate_lines(
     prompt = (
         f"Translate each of the following numbered lines from "
         f"{'English' if _is_eng(src) else src.title()} into {tgt}. These are "
-        f"lines of spoken dialogue for a voiceover dub, so use natural, "
-        f"conversational {tgt} that sounds good read aloud, keeping each line "
-        f"roughly the same length as the original.\n"
-        f"Return ONLY a JSON array of strings — the translations in the SAME "
-        f"order, one string per input line, no numbering, no notes, no "
-        f"transliteration. The array MUST have exactly {len(lines)} items.\n\n"
+        f"lines of spoken dialogue for a voiceover dub that must fit the SAME "
+        f"time slot as the original speech.\n"
+        f"CRITICAL: keep each translation SHORT — it must take no longer to say "
+        f"aloud than the original line. {tgt} often runs longer than English, "
+        f"so prefer the most concise natural phrasing, drop filler words, and "
+        f"never pad or add words. If a literal translation would be longer, "
+        f"shorten it while keeping the meaning. Use natural, conversational "
+        f"{tgt} that sounds good read aloud.\n"
+        f"Return ONLY a JSON array of objects, one per input line, each shaped "
+        f'{{"n": <the line number>, "t": "<the {tgt} translation>"}}. Include an '
+        f"object for EVERY line number from 1 to {len(lines)} — do not skip, "
+        f"merge, or renumber any line. No notes, no transliteration.\n\n"
         f"LINES:\n{numbered}"
     )
     payload = {
@@ -546,17 +613,50 @@ def translate_lines(
         except Exception:
             out = None
 
-    if not isinstance(out, list) or len(out) != len(lines):
+    if not isinstance(out, list) or not out:
         return False, (
-            f"batch translation returned {len(out) if isinstance(out, list) else 'non-list'} "
-            f"items, expected {len(lines)}"
+            f"batch translation returned "
+            f"{'non-list' if not isinstance(out, list) else 'empty list'}, "
+            f"expected {len(lines)} items"
         )
-    cleaned = []
-    for i, item in enumerate(out):
-        t = str(item).strip()
+
+    def _unquote(t: str) -> str:
+        t = str(t).strip()
         if len(t) >= 2 and t[0] in "\"'" and t[-1] == t[0]:
             t = t[1:-1].strip()
-        cleaned.append(t or lines[i])  # never emit an empty line
+        return t
+
+    # Two accepted shapes: indexed objects [{"n":1,"t":"…"}, …] (preferred, lets
+    # us slot each translation to its line even if the model drops or reorders
+    # one) or a bare array of strings (legacy).  Missing lines fall back to the
+    # original text rather than nuking the whole batch — one short line the model
+    # merged shouldn't cost us all 61 translations.
+    cleaned = list(lines)
+    matched = 0
+    if all(isinstance(o, dict) for o in out):
+        for o in out:
+            try:
+                n = int(o.get("n"))
+            except (TypeError, ValueError):
+                continue
+            if 1 <= n <= len(lines):
+                t = _unquote(o.get("t", ""))
+                if t:
+                    cleaned[n - 1] = t
+                    matched += 1
+    else:
+        for i, item in enumerate(out[:len(lines)]):
+            t = _unquote(item)
+            if t:
+                cleaned[i] = t
+                matched += 1
+
+    if matched == 0:
+        return False, "batch translation produced no usable items"
+    if matched < len(lines):
+        # Partial success is fine — kept originals for the gaps.  Signal ok so
+        # the caller doesn't burn through the (Vertex-404) fallback model chain.
+        return True, cleaned
     return True, cleaned
 
 

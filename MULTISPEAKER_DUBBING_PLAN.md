@@ -1,10 +1,22 @@
-# Multi-Speaker Dubbing — Implementation Plan (WhisperX + Diarization)
+# Multi-Speaker Dubbing — Implementation Plan (Diarization)
 
 > **For the implementing model:** Read this whole file first. Work **one phase at a time**,
 > in order. After each phase, run the stated verification and **stop for the user to test**
 > before moving on. Do **not** commit or push — the user does that manually after testing.
 > The user's workflow rule: *always ask before commit/push, and ask the user to verify each
 > feature works before moving on.*
+
+> **⚠️ Build note (architecture change from the original plan):** This plan was written around
+> **WhisperX** as the transcribe+align+diarize wrapper. In practice WhisperX could not be used on
+> this machine: whisperx pins `ctranslate2<4.5.0`, which loads **cuDNN 8**, but the working GPU
+> stack (torch 2.5.1, faster-whisper 1.2.1, ctranslate2 4.8.0) runs on **cuDNN 9**. Installing
+> whisperx broke GPU ASR (`Could not locate cudnn_ops_infer64_8.dll`) and its pyannote 4.x
+> requirement clashed with the bundled pyannote 3.x models. **Phase 1 was therefore implemented
+> without whisperx**: word timestamps come from **faster-whisper** directly, speaker turns from
+> **pyannote.audio** directly, and words are assigned to speakers by **temporal overlap** in our
+> own code (`_extract_diarized` / `_diarize_turns` / `_assign_speakers`). Diarization runs *before*
+> ASR so torch's cuDNN 9 loads before ctranslate2's copy (otherwise torch cuDNN symbol lookups
+> fail). The external behavior (per-word `speaker` labels, graceful fallback) is unchanged.
 
 ---
 
@@ -114,41 +126,41 @@ downloads from HF by ID into the user cache. We do NOT want that (portability + 
 **If anything diarization-related fails (missing bundle AND no token, load error, etc.) → log a
 clear reason and fall back to single-voice transcription. Never crash the dub.**
 
-### Still required: install the whisperx PACKAGE
+### Required packages (whisperx dropped — see build note at top)
 
-The models are staged, but the **code** isn't installed yet. `pip install whisperx` pulls whisperx +
-`pyannote.audio` + `ctranslate2` + `silero-vad` (`faster-whisper` already present). See §6. This is a
-code/pip install, separate from the model weights above.
+The models are staged. For the code, **do not install whisperx** (its cuDNN-8 ctranslate2 pin
+breaks the GPU stack — see the build note at the top). The pieces actually used are already
+present: `faster-whisper` (ASR) and `pyannote.audio==3.3.2` (diarization, matching the bundled
+3.x models). If pyannote is missing, `pip install "pyannote.audio==3.3.2"`.
 
 ---
 
 ## 3. Phases
 
-### Phase 1 — WhisperX transcription + diarization (`_whisper_word_timestamps.py`)
+### Phase 1 — diarized transcription (`_whisper_word_timestamps.py`) ✅ IMPLEMENTED
 **Goal:** add an optional diarized transcription mode that emits the same JSON word format **plus**
 a `"speaker"` field on each word.
 
-**Do:**
-1. Add CLI flags: `--diarize` (bool), `--hf-token <token>`, `--min-speakers`, `--max-speakers` (optional ints).
-2. New function `_extract_whisperx(audio_path, model_size, language, hf_token, min_spk, max_spk)`:
-   - `import whisperx` (ImportError → raise so caller falls back).
-   - Load ASR: `model = whisperx.load_model(model_size, device, compute_type=...)`
-     (reuse device/precision logic already in `_extract_faster_whisper`: cuda/float16 else cpu/int8).
-   - `result = model.transcribe(audio, language=language)`
-   - Align: `model_a, meta = whisperx.load_align_model(language_code=result["language"], device=device)`
-     then `result = whisperx.align(result["segments"], model_a, meta, audio, device)`
-   - Diarize: `dia = whisperx.diarize.DiarizationPipeline(use_auth_token=hf_token, device=device)`
-     then `diar = dia(audio, min_speakers=min_spk, max_speakers=max_spk)`
-     then `result = whisperx.assign_word_speakers(diar, result)`
-   - Flatten to the standard word list, adding `"speaker": word.get("speaker", "SPEAKER_00")`.
-     Keep `word/offset/duration` exactly as the existing format so nothing else breaks.
-   - **Note:** whisperx API has shifted across versions. If `whisperx.diarize.DiarizationPipeline`
-     isn't found, try `from whisperx import DiarizationPipeline`. Pin version per §6 to avoid this.
-3. In `extract_word_timestamps(...)`, add params `diarize=False, hf_token=None, min_spk=None, max_spk=None`.
-   - If `diarize` and `hf_token`: `try: return _extract_whisperx(...)` — on **any** exception, log the
-     reason and fall through to the existing faster-whisper chain (words with no speaker).
+**As built (faster-whisper + pyannote, no whisperx — see build note at top):**
+1. CLI flags added: `--diarize` (bool), `--hf-token <token>`, `--min-speakers`, `--max-speakers`.
+2. `_extract_diarized(audio_path, model_size, language, hf_token, min_spk, max_spk)`:
+   - **Diarize first** (`_diarize_turns`): builds the pyannote pipeline from the local bundle
+     (`_build_diarization_pipeline`), moves it to cuda, runs it, returns `(start, end, speaker)`
+     turns. Runs before ASR so torch's cuDNN 9 loads before ctranslate2's copy.
+   - **ASR** (`_extract_faster_whisper` via the existing size-fallback chain) → word timestamps.
+   - **Assign** (`_assign_speakers`): label each word by max temporal overlap with the turns, with
+     a nearest-turn fallback for words that overlap no turn. Adds `"speaker"` to each word dict;
+     keeps `word/offset/duration` exactly as the existing format.
+3. `extract_word_timestamps(...)` has `diarize`, `hf_token`, `min_speakers`, `max_speakers`.
+   - If `diarize`: `try: return _extract_diarized(...)` — on **any** exception, log and fall through
+     to the existing faster-whisper chain (words with no speaker). If diarization alone fails, words
+     are returned without a `speaker` key.
    - If not diarizing, behavior is unchanged.
-4. In `main()`, wire the new flags; when diarize path is used, each JSON word includes `"speaker"`.
+4. `main()` wires the flags; diarized output includes `"speaker"` on each JSON word.
+
+**Also required (`_whisper_word_timestamps.py` top):** TensorFlow is disabled via `USE_TF=0` +
+a meta_path blocker, because thinc (transitive via pyannote) eagerly imports TF, whose bundled
+protobuf gencode (6.31.x) clashes with the runtime protobuf 5.29.x pinned by google-generativeai.
 
 **Verify:**
 - `python _whisper_word_timestamps.py <clip.wav> --model medium --language en --diarize --hf-token hf_xxx`
@@ -284,16 +296,19 @@ a `"speaker"` field on each word.
 # Multi-speaker dubbing (speaker diarization). Optional — only needed for the
 # "Multi-speaker dubbing" toggle in the Dubbing tab. Requires a Hugging Face
 # token + accepting the pyannote license (see MULTISPEAKER_DUBBING_PLAN.md §2).
-whisperx>=3.1.1
-# whisperx pulls pyannote.audio, faster-whisper, ctranslate2, silero-vad.
+#
+# NOTE: do NOT add whisperx here. whisperx pins ctranslate2<4.5.0 (cuDNN 8),
+# which conflicts with the working cuDNN-9 GPU stack (torch 2.5.1 /
+# faster-whisper 1.2.1 / ctranslate2 4.8.0). Diarization uses pyannote directly.
+pyannote.audio==3.3.2   # matches the bundled models/pyannote/ 3.x weights
+# faster-whisper is already required by the core install (ASR).
 ```
 Install command (documented in the .bat):
 ```
 pip install -r setup/requirements_diarize.txt
 ```
-> Version note: whisperx's diarization import path has changed between releases.
-> If `whisperx.diarize.DiarizationPipeline` is missing at runtime, try
-> `from whisperx import DiarizationPipeline`. Pin a known-good version if needed.
+> Version note: keep `pyannote.audio` on the **3.x** line to match the bundled models. pyannote 4.x
+> needs torch 2.8+ and a different config format; it will not load the staged 3.x weights.
 
 ---
 
@@ -303,15 +318,17 @@ pip install -r setup/requirements_diarize.txt
 - Keep the **JSON word format stable** — only ADD a `speaker` key; don't rename existing keys,
   or `group_words_into_segments` and the whole pipeline break.
 - The faster-whisper local models (`models/whisper/faster-whisper-medium|base/`) are already
-  installed and gitignored — reuse them; whisperx can load the same sizes.
+  installed and gitignored — reuse them for ASR.
+- **cuDNN load order:** run diarization (pyannote/torch, cuDNN 9) *before* faster-whisper
+  (ctranslate2 loads its own cuDNN). Reverse order → `Could not load symbol cudnnGetLibConfig`.
 - Diarization runs on the **original audio**, before translation. TTS/translation still use Gemini.
 - Test the **single-speaker regression** at the end of every phase — the existing dubbing path
   must keep working unchanged.
 - Do **not** commit/push. After each phase, stop and ask the user to test.
 
 ## 8. Progress log (implementer: update as you go)
-- [ ] Phase 1 — WhisperX diarized transcription
-- [ ] Phase 2 — carry speaker through segments
-- [ ] Phase 3 — voice-mapping UI
-- [ ] Phase 4 — per-line voice in TTS loop
-- [ ] Phase 5 — deps, installer, docs
+- [x] Phase 1 — diarized transcription (faster-whisper + pyannote; whisperx dropped, see build note)
+- [x] Phase 2 — carry speaker through segments (`group_words_into_segments` splits on speaker change + `speaker` key; `distinct_speakers` helper; `transcribe_video` diarize params)
+- [x] Phase 3 — voice-mapping UI (🎭 Speaker Voices card in `dubbing_tab.py`: toggle, HF token, Detect Speakers button, per-speaker voice dropdowns; persists `dub_speaker_voices`)
+- [x] Phase 4 — per-line voice in TTS loop (`build_dubbed_audio` reads `dub_multispeaker`/`dub_speaker_voices`, diarizes transcription, shallow-copies settings per segment to override `gemini_tts_voice`)
+- [x] Phase 5 — deps, installer, docs (`setup/requirements_diarize.txt` + `setup/install_diarize.bat`, whisperx-free; `models/whisper` + `models/pyannote` confirmed gitignored)

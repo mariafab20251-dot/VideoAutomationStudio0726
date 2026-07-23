@@ -124,6 +124,22 @@ VoiceModules/**/*.bin
 # The _whisper_word_timestamps.py helper auto-detects them in this folder.
 models/whisper/
 
+# pyannote diarization models (multi-speaker dubbing) — copied per-machine.
+models/pyannote/
+
+# Dubbing installer artifacts — large per-machine data, NOT committed.
+# The offline model bundle (whisper ~1.6 GB, pyannote ~32 MB) and the pip
+# wheelhouse travel with the folder-copy to a new PC, not through git.
+# Only the small demucs weight (~81 MB) is tracked.
+setup/models/whisper/
+setup/models/pyannote/
+setup/wheels/
+setup/dub_venv/
+!setup/models/demucs/
+!setup/models/demucs/*.th
+setup/wheels/
+setup/dub_venv/
+
 # User content
 Background music/
 VoiceModules/New folder/

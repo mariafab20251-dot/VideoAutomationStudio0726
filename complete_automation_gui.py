@@ -7522,11 +7522,27 @@ class VideoAutomationGUI(DubbingTabMixin, ThumbnailTabMixin):
                     _do_reframe, _reframe_w, _reframe_h = True, 1080, 1080
                 else:  # 16:9 — native source framing, no reframe pass
                     _do_reframe = False
+                # Force the render's output resolution to match the chosen
+                # aspect. Without this the main pipeline falls back to its
+                # default 1080x1920 portrait canvas (see _do_render_actual's
+                # "FORCE STANDARD RESOLUTION"), which squashed 16:9 movie
+                # recaps into vertical even when Aspect Ratio said 16:9.
+                _out_w, _out_h = {
+                    '9:16': (1080, 1920),
+                    '1:1':  (1080, 1080),
+                    '16:9': (1920, 1080),
+                }.get(_aspect, (1920, 1080))
+                self.settings['output_width'] = _out_w
+                self.settings['output_height'] = _out_h
+                # Case Commentary drives its own resolution — make sure a
+                # stale platform preset doesn't override the aspect above.
+                self.settings['enable_platform_preset'] = False
                 # Movies mute the source; courtroom story-cut keeps dialogue.
                 _keep_clip_audio = _story_cut and not _mute_original
                 self._os_log('info',
                     f'Case-Commentary: story_cut={_story_cut} '
                     f'aspect={_aspect} reframe={_do_reframe} '
+                    f'out={_out_w}x{_out_h} '
                     f'mute_original={_mute_original}')
 
                 if _montage_raw:

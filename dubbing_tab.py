@@ -20,6 +20,7 @@ runs the dub on a worker thread and streams progress into its own log box.
 
 from __future__ import annotations
 
+import os
 import threading
 import traceback
 from pathlib import Path
@@ -86,22 +87,35 @@ class DubbingTabMixin:
                       'back over the (ducked) original audio. No Excel or '
                       'script needed.',
                  bg=AppStyles.BG_CARD, fg=AppStyles.TEXT_MEDIUM,
-                 font=('Segoe UI', 9), justify='left', wraplength=760).pack(
+                 font=('Segoe UI', 9), justify='left', wraplength=520).pack(
                      anchor='w', pady=(2, 0))
 
         body = tk.Frame(tab, bg=AppStyles.BG_CARD)
         body.pack(fill='both', expand=True, padx=20, pady=(10, 0))
 
+        # Two responsive columns: controls on the LEFT (scrollable, grows to
+        # fill), log panel on the RIGHT (narrow, fixed-ish).  Using pack so the
+        # left column takes all leftover width at any screen size.
+        left_col = tk.Frame(body, bg=AppStyles.BG_CARD)
+        left_col.pack(side='left', fill='both', expand=True)
+
+        right_col = tk.Frame(body, bg=AppStyles.BG_CARD, width=300)
+        right_col.pack(side='right', fill='y', padx=(12, 0))
+        right_col.pack_propagate(False)   # keep the log panel at its set width
+
         # Scrollable canvas for the input cards (so they don't compete with log)
-        canvas = tk.Canvas(body, bg=AppStyles.BG_CARD, highlightthickness=0)
-        scrollbar = ttk.Scrollbar(body, orient='vertical', command=canvas.yview)
+        canvas = tk.Canvas(left_col, bg=AppStyles.BG_CARD, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(left_col, orient='vertical', command=canvas.yview)
         scrollable = tk.Frame(canvas, bg=AppStyles.BG_CARD)
         scrollable.bind('<Configure>',
                         lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
-        canvas.create_window((0, 0), window=scrollable, anchor='nw')
+        _win = canvas.create_window((0, 0), window=scrollable, anchor='nw')
+        # Bind the inner frame's width to the canvas width so cards reflow to the
+        # available space instead of keeping their natural width and OVERLAPPING.
+        canvas.bind('<Configure>', lambda e: canvas.itemconfigure(_win, width=e.width))
         canvas.configure(yscrollcommand=scrollbar.set)
-        canvas.pack(side='top', fill='both', expand=True)
         scrollbar.pack(side='right', fill='y')
+        canvas.pack(side='left', fill='both', expand=True)
 
         # Mousewheel scrolling
         def _on_mousewheel(event):
@@ -172,6 +186,85 @@ class DubbingTabMixin:
                  bg=AppStyles.BG_CARD, fg=AppStyles.TEXT_MEDIUM,
                  font=('Segoe UI', 8, 'italic')).pack(side='left', padx=(8, 0))
 
+        # ── 2b) Speaker voices (multi-speaker dubbing) ──────────────────
+        spk_card = self._dub_card(scrollable, '🎭 Speaker Voices')
+
+        # Master toggle
+        self._dub_multi_var = tk.BooleanVar(
+            value=bool(self.settings.get('dub_multispeaker', False)))
+        tk.Checkbutton(spk_card,
+                       text='Multi-speaker dubbing (detect & assign a voice per speaker)',
+                       variable=self._dub_multi_var,
+                       bg=AppStyles.BG_CARD, fg=AppStyles.TEXT_DARK,
+                       activebackground=AppStyles.BG_CARD,
+                       selectcolor=AppStyles.BG_INPUT,
+                       font=('Segoe UI', 9),
+                       command=lambda: self.update_setting(
+                           'dub_multispeaker',
+                           self._dub_multi_var.get())).pack(
+                               anchor='w', padx=8, pady=(2, 2))
+
+        # HF token (needed only if the local pyannote bundle is missing)
+        hrow = tk.Frame(spk_card, bg=AppStyles.BG_CARD)
+        hrow.pack(fill='x', padx=8, pady=(2, 2))
+        tk.Label(hrow, text='HF Token:', bg=AppStyles.BG_CARD,
+                 fg=AppStyles.TEXT_DARK, font=('Segoe UI', 9),
+                 width=10, anchor='w').pack(side='left')
+        self._dub_hf_var = tk.StringVar(value=self.settings.get('hf_token', ''))
+        hf_entry = tk.Entry(hrow, textvariable=self._dub_hf_var, show='•',
+                            bg=AppStyles.BG_INPUT, fg=AppStyles.TEXT_DARK,
+                            font=('Segoe UI', 9), relief='flat')
+        hf_entry.pack(side='left', fill='x', expand=True, padx=(0, 6), ipady=3)
+        hf_entry.bind('<FocusOut>', lambda e: self.update_setting(
+            'hf_token', self._dub_hf_var.get().strip()))
+        tk.Label(spk_card,
+                 text='   Optional — only needed if the bundled pyannote models '
+                      'are missing (see MULTISPEAKER_DUBBING_PLAN.md §2).',
+                 bg=AppStyles.BG_CARD, fg=AppStyles.TEXT_MEDIUM,
+                 font=('Segoe UI', 8, 'italic'), justify='left',
+                 wraplength=500).pack(anchor='w', padx=8)
+
+        # Exact speaker count — forces pyannote instead of letting it guess
+        # (auto-detection often over-splits one voice into several).
+        crow = tk.Frame(spk_card, bg=AppStyles.BG_CARD)
+        crow.pack(fill='x', padx=8, pady=(4, 2))
+        tk.Label(crow, text='Speakers in video:', bg=AppStyles.BG_CARD,
+                 fg=AppStyles.TEXT_DARK, font=('Segoe UI', 9),
+                 width=16, anchor='w').pack(side='left')
+        self._dub_nspk_var = tk.StringVar(
+            value=str(self.settings.get('dub_num_speakers') or 'Auto'))
+        nspk = ttk.Combobox(
+            crow, textvariable=self._dub_nspk_var, width=8, state='readonly',
+            values=['Auto', '1', '2', '3', '4', '5', '6', '7', '8'])
+        nspk.pack(side='left', padx=(6, 0))
+        nspk.bind('<<ComboboxSelected>>', lambda e: self._dub_save_num_speakers())
+        tk.Label(crow, text='  (set the exact count for best accuracy)',
+                 bg=AppStyles.BG_CARD, fg=AppStyles.TEXT_MEDIUM,
+                 font=('Segoe UI', 8, 'italic')).pack(side='left')
+
+        # Detect button + rows container
+        drow = tk.Frame(spk_card, bg=AppStyles.BG_CARD)
+        drow.pack(fill='x', padx=8, pady=(6, 2))
+        self._dub_detect_btn = ModernButton(
+            drow, text='🔍 Detect Speakers', bg_color=AppStyles.ACCENT_INFO,
+            font=('Segoe UI', 9, 'bold'), padx=10, pady=3,
+            command=self._dub_detect_speakers)
+        self._dub_detect_btn.pack(side='left')
+        self._dub_detect_status = tk.StringVar(value='')
+        tk.Label(drow, textvariable=self._dub_detect_status,
+                 bg=AppStyles.BG_CARD, fg=AppStyles.ACCENT_PRIMARY,
+                 font=('Segoe UI', 8, 'italic')).pack(side='left', padx=(10, 0))
+
+        # Container that per-speaker rows get added to (rebuilt on each detect)
+        self._dub_speaker_rows = tk.Frame(spk_card, bg=AppStyles.BG_CARD)
+        self._dub_speaker_rows.pack(fill='x', padx=8, pady=(2, 6))
+        self._dub_speaker_vars = {}   # speaker label → StringVar(voice key)
+
+        # Rebuild rows from any previously-saved mapping
+        _saved_map = self.settings.get('dub_speaker_voices') or {}
+        if _saved_map:
+            self._dub_build_speaker_rows(sorted(_saved_map.keys()))
+
         # ── 3) Output + mix controls ───────────────────────────────────
         opt_card = self._dub_card(scrollable, '⚙️ Options')
 
@@ -206,10 +299,17 @@ class DubbingTabMixin:
             value=float(self.settings.get('dub_original_duck', 0.12)))
         self._dub_bg_var = tk.DoubleVar(
             value=float(self.settings.get('dub_original_bg', 0.55)))
-        self._dub_slider(mrow, 'Original under dub:', self._dub_duck_var,
+        self._dub_slider(mrow, 'Orig. vol. during dub:', self._dub_duck_var,
                          'dub_original_duck')
-        self._dub_slider(mrow, 'Original elsewhere:', self._dub_bg_var,
+        self._dub_slider(mrow, 'Orig. vol. (music/gaps):', self._dub_bg_var,
                          'dub_original_bg')
+        tk.Label(opt_card,
+                 text='   During dub = how loud the original stays UNDER the '
+                      'dubbed voice.  Music/gaps = its volume where nobody is '
+                      'being dubbed (background music, pauses).',
+                 bg=AppStyles.BG_CARD, fg=AppStyles.TEXT_MEDIUM,
+                 font=('Segoe UI', 8, 'italic'), justify='left',
+                 wraplength=500).pack(anchor='w', padx=8)
 
         # Max dubbing speed — how much a long translated line may be sped up
         # (pitch-preserving) to stay on the video timeline.  1.0 = never speed
@@ -239,7 +339,30 @@ class DubbingTabMixin:
                       'Urdu/Hindi.',
                  bg=AppStyles.BG_CARD, fg=AppStyles.TEXT_MEDIUM,
                  font=('Segoe UI', 8, 'italic'), justify='left',
-                 wraplength=740).pack(anchor='w', padx=8)
+                 wraplength=500).pack(anchor='w', padx=8)
+
+        # Keep original music & SFX (Demucs vocal removal) ---------------
+        self._dub_keep_music_var = tk.BooleanVar(
+            value=bool(self.settings.get('dub_keep_music', False)))
+        tk.Checkbutton(opt_card,
+                       text='Keep original music & sound effects (remove only voices)',
+                       variable=self._dub_keep_music_var,
+                       bg=AppStyles.BG_CARD, fg=AppStyles.TEXT_DARK,
+                       activebackground=AppStyles.BG_CARD,
+                       selectcolor=AppStyles.BG_INPUT,
+                       font=('Segoe UI', 8),
+                       command=lambda: self.update_setting(
+                           'dub_keep_music',
+                           self._dub_keep_music_var.get())).pack(
+                               anchor='w', padx=8, pady=(6, 0))
+        tk.Label(opt_card,
+                 text='   Uses AI (Demucs) to strip the actors’ speech while '
+                      'keeping the score, ambience & effects at full quality — '
+                      'the dub then sits on a clean music/SFX bed. Adds a short '
+                      'GPU pass per video; falls back to ducking if unavailable.',
+                 bg=AppStyles.BG_CARD, fg=AppStyles.TEXT_MEDIUM,
+                 font=('Segoe UI', 8, 'italic'), justify='left',
+                 wraplength=500).pack(anchor='w', padx=8, pady=(0, 2))
 
         self._dub_keep_audio_var = tk.BooleanVar(
             value=self.settings.get('dub_keep_audio_file', False))
@@ -256,7 +379,7 @@ class DubbingTabMixin:
                                anchor='w', padx=8, pady=(2, 6))
 
         # ── 4) Run button + progress ───────────────────────────────────
-        run_row = tk.Frame(body, bg=AppStyles.BG_CARD)
+        run_row = tk.Frame(scrollable, bg=AppStyles.BG_CARD)
         run_row.pack(fill='x', pady=(4, 2))
         self._dub_run_btn = ModernButton(
             run_row, text='▶  Dub Video', bg_color=AppStyles.ACCENT_SUCCESS,
@@ -271,18 +394,27 @@ class DubbingTabMixin:
                             side='left', fill='x', expand=True, padx=(12, 0))
 
         self._dub_status_var = tk.StringVar(value='Ready.')
-        tk.Label(body, textvariable=self._dub_status_var,
+        tk.Label(scrollable, textvariable=self._dub_status_var,
                  bg=AppStyles.BG_CARD, fg=AppStyles.ACCENT_PRIMARY,
                  font=('Segoe UI', 9)).pack(anchor='w', pady=(0, 4))
 
-        # ── 5) Log box (expands to fill remaining space) ────────────
-        log_card = self._dub_card(body, '📋 Log')
-        log_card.pack_forget()
-        log_card.pack(fill='both', expand=True, pady=6)
+        # ── 5) Log box — small panel on the RIGHT, fills its column height ──
+        log_card = tk.Frame(right_col, bg=AppStyles.BG_CARD,
+                            highlightbackground='#30363d', highlightthickness=1)
+        log_card.pack(fill='both', expand=True)
+        tk.Label(log_card, text='📋 Log', bg=AppStyles.BG_CARD,
+                 fg=AppStyles.ACCENT_PRIMARY,
+                 font=('Segoe UI', 10, 'bold')).pack(anchor='w', padx=8, pady=(6, 0))
+        _log_wrap = tk.Frame(log_card, bg=AppStyles.BG_CARD)
+        _log_wrap.pack(fill='both', expand=True, padx=6, pady=6)
+        _log_scroll = ttk.Scrollbar(_log_wrap, orient='vertical')
+        _log_scroll.pack(side='right', fill='y')
         self._dub_log_widget = tk.Text(
-            log_card, height=6, wrap='word', bg=AppStyles.BG_INPUT,
-            fg=AppStyles.TEXT_DARK, font=('Consolas', 8), relief='flat', bd=4)
-        self._dub_log_widget.pack(fill='both', expand=True, padx=6, pady=6)
+            _log_wrap, width=1, wrap='word', bg=AppStyles.BG_INPUT,
+            fg=AppStyles.TEXT_DARK, font=('Consolas', 8), relief='flat', bd=4,
+            yscrollcommand=_log_scroll.set)
+        self._dub_log_widget.pack(side='left', fill='both', expand=True)
+        _log_scroll.config(command=self._dub_log_widget.yview)
         self._dub_running = False
 
     # ── Small UI helpers ────────────────────────────────────────────────
@@ -312,6 +444,313 @@ class DubbingTabMixin:
         ttk.Scale(row, from_=0.0, to=1.0, variable=var, orient='horizontal',
                   command=_on_move).pack(side='left', fill='x', expand=True,
                                          padx=6)
+
+    # ── Multi-speaker: detect + voice mapping ───────────────────────────
+    def _dub_voice_keys(self):
+        """Gemini TTS voice keys for the speaker dropdowns (safe fallback).
+
+        The child-voice presets are appended so a speaker can be voiced as a
+        boy/girl (adult voice pitch-shifted up, or Edge's real child voice).
+        """
+        keys = None
+        try:
+            from gemini_api_tts_helper import get_voice_keys
+            keys = get_voice_keys()
+        except Exception:
+            keys = None
+        if not keys:
+            keys = ['Zephyr', 'Puck', 'Charon', 'Kore', 'Fenrir', 'Aoede']
+        try:
+            from dubbing_engine import CHILD_VOICE_PRESETS
+            child = list(CHILD_VOICE_PRESETS.keys())
+        except Exception:
+            child = ['Child girl (Gemini)', 'Child boy (Gemini)',
+                     'Child girl (Edge)', 'Child boy (Edge)']
+        return list(keys) + child
+
+    def _dub_voice_label(self, key):
+        """'Puck' → 'Puck (Male) — upbeat · ads/reactions' for display.
+
+        Appends gender + a best-use hint so voices aren't picked blind.  Falls
+        back to bare key if unknown.  Child presets already read naturally
+        (e.g. 'Child girl (Gemini)'), so they are shown as-is.
+        """
+        if str(key).startswith('Child '):
+            return str(key)
+        try:
+            from gemini_api_tts_helper import get_voice_gender, get_voice_use
+            g = get_voice_gender(key)
+            use = get_voice_use(key)
+            base = f'{key} ({g})' if g else str(key)
+            return f'{base} — {use}' if use else base
+        except Exception:
+            return key
+
+    def _dub_build_speaker_rows(self, speakers, genders=None):
+        """Render one label + voice Combobox per detected speaker.
+
+        ``genders`` maps speaker→'Male'/'Female' (from pitch analysis).  The
+        default voice is picked to MATCH that gender when known, cycling within
+        the matching-gender voices so two same-gender speakers still differ.
+        Any voice already saved for a speaker is preserved.  Every change
+        persists the whole mapping to ``settings['dub_speaker_voices']``.
+        """
+        genders = genders or {}
+        # Clear previous rows
+        for child in list(self._dub_speaker_rows.winfo_children()):
+            child.destroy()
+        self._dub_speaker_vars = {}
+
+        voice_keys = self._dub_voice_keys()
+        saved = self.settings.get('dub_speaker_voices') or {}
+        self._dub_speaker_genders = genders
+
+        # Group voice keys by gender so defaults can be gender-matched.
+        try:
+            from gemini_api_tts_helper import get_voice_gender
+        except Exception:
+            get_voice_gender = lambda k: ''
+        by_gender = {'Male': [], 'Female': []}
+        for k in voice_keys:
+            g = get_voice_gender(k)
+            if g in by_gender:
+                by_gender[g].append(k)
+
+        # Display labels carry the gender, e.g. "Puck (Male)"; map back to keys.
+        display_values = [self._dub_voice_label(k) for k in voice_keys]
+        self._dub_label_to_key = {self._dub_voice_label(k): k for k in voice_keys}
+
+        _gender_counts = {'Male': 0, 'Female': 0}
+        for idx, spk in enumerate(speakers):
+            row = tk.Frame(self._dub_speaker_rows, bg=AppStyles.BG_CARD)
+            row.pack(fill='x', pady=2)
+            g = genders.get(spk, '')
+            spk_label = f'{spk} ({g}):' if g else f'{spk}:'
+            tk.Label(row, text=spk_label, bg=AppStyles.BG_CARD,
+                     fg=AppStyles.TEXT_DARK, font=('Segoe UI', 9),
+                     width=18, anchor='w').pack(side='left')
+            # Pre-fill: saved choice, else a gender-matched voice (cycling within
+            # that gender so two same-gender speakers get distinct voices), else
+            # fall back to cycling the whole list.
+            default = saved.get(spk)
+            if not default:
+                pool = by_gender.get(g) if g else None
+                if pool:
+                    default = pool[_gender_counts[g] % len(pool)]
+                    _gender_counts[g] += 1
+                elif voice_keys:
+                    default = voice_keys[idx % len(voice_keys)]
+            # The visible StringVar shows the labelled form; the bare key is
+            # recovered in _dub_save_speaker_map via _dub_label_to_key.
+            var = tk.StringVar(value=self._dub_voice_label(default) if default else '')
+            combo = ttk.Combobox(row, textvariable=var, values=display_values,
+                                 width=42, state='readonly')
+            combo.pack(side='left', padx=(6, 0))
+            combo.bind('<<ComboboxSelected>>',
+                       lambda e: self._dub_save_speaker_map())
+            self._dub_speaker_vars[spk] = var
+
+            # Preview buttons: hear the ACTOR's real voice vs. the ASSIGNED
+            # voice, so voices aren't assigned blind.
+            ModernButton(row, text='🎬 Actor', bg_color=AppStyles.ACCENT_INFO,
+                         font=('Segoe UI', 8), padx=6, pady=2,
+                         command=lambda s=spk: self._dub_preview_actor(s)).pack(
+                             side='left', padx=(6, 0))
+            ModernButton(row, text='▶ Voice', bg_color=AppStyles.ACCENT_SUCCESS,
+                         font=('Segoe UI', 8), padx=6, pady=2,
+                         command=lambda s=spk: self._dub_preview_voice(s)).pack(
+                             side='left', padx=(4, 0))
+
+        # Persist the (possibly auto-suggested) mapping immediately
+        self._dub_save_speaker_map()
+
+    def _dub_save_num_speakers(self):
+        """Persist the exact-speaker-count choice.
+
+        'Auto' clears the hint (pyannote guesses); a number N pins BOTH the min
+        and max so the diarizer returns exactly N speakers.
+        """
+        raw = (self._dub_nspk_var.get() or 'Auto').strip()
+        if raw.isdigit():
+            n = int(raw)
+            self.update_setting('dub_num_speakers', n)
+            self.update_setting('dub_min_speakers', n)
+            self.update_setting('dub_max_speakers', n)
+        else:
+            self.update_setting('dub_num_speakers', 0)
+            self.update_setting('dub_min_speakers', 0)
+            self.update_setting('dub_max_speakers', 0)
+
+    def _dub_save_speaker_map(self):
+        """Write the current speaker→voice dropdown state to settings.
+
+        The comboboxes show labelled forms like "Puck (Male)"; store the bare
+        voice key so the TTS engine gets exactly what it expects.
+        """
+        label_to_key = getattr(self, '_dub_label_to_key', {})
+        mapping = {}
+        for spk, var in self._dub_speaker_vars.items():
+            disp = var.get()
+            if not disp:
+                continue
+            mapping[spk] = label_to_key.get(disp, disp)
+        self.update_setting('dub_speaker_voices', mapping)
+
+    # ── Speaker/voice preview ───────────────────────────────────────────
+    def _dub_preview_actor(self, speaker):
+        """Play ~10s of the ACTOR's real voice from the video, so the user can
+        hear who SPEAKER_xx actually is (and their true gender)."""
+        if getattr(self, '_dub_running', False):
+            self._dub_log('warn', 'Busy — please wait.')
+            return
+        video = (self._dub_video_var.get() or '').strip()
+        if not video or not Path(video).is_file():
+            messagebox.showerror('Preview', 'Pick a valid video file first.')
+            return
+        segs = getattr(self, '_dub_detected_segments', None)
+        if not segs:
+            messagebox.showinfo('Preview',
+                                'Run "Detect Speakers" first so I know each '
+                                'actor\'s timing.')
+            return
+        self._dub_log('info', f'Preview: extracting {speaker} audio…')
+        t = threading.Thread(
+            target=self._dub_preview_actor_worker,
+            args=(Path(video), list(segs), speaker), daemon=True)
+        t.start()
+
+    def _dub_preview_actor_worker(self, video, segs, speaker):
+        try:
+            import tempfile
+            out = Path(tempfile.gettempdir()) / f'_dub_actor_{speaker}.wav'
+            res = dubbing_engine.preview_actor_clip(
+                video, segs, speaker, out, log=self._dub_log, max_dur=10.0)
+            if res and Path(res).is_file():
+                os.startfile(str(res))  # play in default audio player
+            else:
+                self._dub_log('warn', f'Preview: no audio for {speaker}')
+        except Exception as e:
+            self._dub_log('error', f'Preview actor failed: {e}')
+
+    def _dub_preview_voice(self, speaker):
+        """Render + play a short TTS sample of the voice currently assigned to
+        this speaker — exactly as the dub will produce it."""
+        if getattr(self, '_dub_running', False):
+            self._dub_log('warn', 'Busy — please wait.')
+            return
+        var = self._dub_speaker_vars.get(speaker)
+        disp = var.get() if var else ''
+        label_to_key = getattr(self, '_dub_label_to_key', {})
+        voice = label_to_key.get(disp, disp)
+        if not voice:
+            messagebox.showinfo('Preview', 'Pick a voice for this speaker first.')
+            return
+        self._dub_log('info', f'Preview: rendering "{voice}" for {speaker}…')
+        t = threading.Thread(
+            target=self._dub_preview_voice_worker,
+            args=(speaker, voice), daemon=True)
+        t.start()
+
+    def _dub_preview_voice_worker(self, speaker, voice):
+        try:
+            import tempfile
+            # A short line in the target language reads more naturally than
+            # English when auditioning a dub voice.
+            sample = self._dub_preview_sample_text()
+            out = Path(tempfile.gettempdir()) / f'_dub_voice_{speaker}.mp3'
+            res = dubbing_engine.preview_voice(
+                sample, voice, self.settings, out, log=self._dub_log)
+            if res and Path(res).is_file():
+                os.startfile(str(res))
+            else:
+                self._dub_log('warn', f'Preview: could not render {voice}')
+        except Exception as e:
+            self._dub_log('error', f'Preview voice failed: {e}')
+
+    def _dub_preview_sample_text(self):
+        """A one-line audition sample; uses the target language when known."""
+        tgt = (self._dub_lang_var.get() or '').strip().lower() if hasattr(
+            self, '_dub_lang_var') else ''
+        samples = {
+            'urdu': 'السلام علیکم، یہ میری آواز کا نمونہ ہے۔',
+            'hindi': 'नमस्ते, यह मेरी आवाज़ का नमूना है।',
+            'arabic': 'مرحبا، هذه عينة من صوتي.',
+        }
+        for k, v in samples.items():
+            if k in tgt:
+                return v
+        return 'Hello, this is a sample of my dubbing voice.'
+
+    def _dub_detect_speakers(self):
+        """Run diarized transcription on the chosen video → list speakers."""
+        if getattr(self, '_dub_running', False):
+            self._dub_log('warn', 'A dub is already running — please wait.')
+            return
+        video = (self._dub_video_var.get() or '').strip()
+        if not video or not Path(video).is_file():
+            messagebox.showerror('Detect Speakers',
+                                 'Please pick a valid video file first.')
+            return
+        # Persist the toggle + token before detecting
+        self.update_setting('dub_multispeaker', self._dub_multi_var.get())
+        self.update_setting('hf_token', self._dub_hf_var.get().strip())
+
+        self._dub_running = True
+        self._dub_detect_btn.config(state='disabled')
+        self._dub_detect_status.set('Detecting… (this can take a minute)')
+        self._dub_log('header', 'Detecting speakers…')
+        src_lang = (self._dub_src_lang_var.get() or '').strip()
+        t = threading.Thread(
+            target=self._dub_detect_worker,
+            args=(Path(video),
+                  src_lang if src_lang != 'Auto-detect' else None),
+            daemon=True)
+        t.start()
+
+    def _dub_detect_worker(self, video: Path, src_lang):
+        try:
+            words = dubbing_engine.transcribe_video(
+                video, self.settings, log=self._dub_log,
+                source_language=src_lang, diarize=True,
+                hf_token=self._dub_hf_var.get().strip() or None,
+                min_spk=self.settings.get('dub_min_speakers') or None,
+                max_spk=self.settings.get('dub_max_speakers') or None)
+            segs = dubbing_engine.group_words_into_segments(words) if words else []
+            speakers = dubbing_engine.distinct_speakers(segs) if segs else []
+            if not speakers:
+                self._dub_log('warn', 'No speakers detected — check the video/log.')
+                self._dub_video_widget_after(
+                    lambda: self._dub_detect_status.set('No speakers detected.'))
+                return
+            self._dub_log('ok', f'Detected {len(speakers)} speaker(s): {speakers}')
+            # Cache the diarized segments + video so the per-speaker preview
+            # buttons can extract each actor's ORIGINAL voice on demand.
+            self._dub_detected_segments = segs
+            self._dub_detected_video = video
+            # Estimate each speaker's gender from voice pitch so the default
+            # voice can be gender-matched instead of assigned by index.
+            genders = {}
+            try:
+                genders = dubbing_engine.estimate_speaker_genders(
+                    video, segs, log=self._dub_log)
+                if genders:
+                    self._dub_log('info', f'Dub: estimated genders {genders}')
+            except Exception as e:
+                self._dub_log('warn', f'Dub: gender estimate failed ({e})')
+            self._dub_video_widget_after(
+                lambda: (self._dub_build_speaker_rows(speakers, genders),
+                         self._dub_detect_status.set(
+                             f'{len(speakers)} speaker(s) — pick a voice each.')))
+        except Exception as e:
+            self._dub_log('error', f'Detect speakers failed: {e}')
+            for ln in traceback.format_exc().splitlines():
+                self._dub_log('error', f'  {ln}')
+            self._dub_video_widget_after(
+                lambda: self._dub_detect_status.set('❌ Failed. See log.'))
+        finally:
+            self._dub_running = False
+            self._dub_video_widget_after(
+                lambda: self._dub_detect_btn.config(state='normal'))
 
     # ── Logging (thread-safe via after) ─────────────────────────────────
     def _dub_log(self, level, msg):
