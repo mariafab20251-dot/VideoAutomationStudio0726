@@ -1,0 +1,44 @@
+# =============================================================
+#  Dubbing tab — GPU stack (NVIDIA / CUDA 12.1, cuDNN 9)
+# =============================================================
+# EXACT versions verified working on THIS PC (dedicated NVIDIA GPU).
+# install_dubbing.bat installs these into setup\dub_venv (Python 3.11).
+#
+# For a PC with NO dedicated GPU (integrated / AMD shared), use the
+# CPU variant instead:  setup\dubbing_cpu\install_dubbing_cpu.bat
+#
+# DO NOT add whisperx — it pins ctranslate2<4.5 (cuDNN 8) and breaks
+# this stack. Word timestamps = faster-whisper; diarization = pyannote.
+# See MULTISPEAKER_DUBBING_PLAN.md.
+#
+# NOTE: torch / torchaudio are NOT listed here — the installer pulls
+# the CUDA 12.1 build (torch==2.5.1+cu121) from PyTorch's index first.
+# ------------------------------------------------------------------
+
+# --- Word timestamps (must stay cuDNN-9 compatible) -----------------
+faster-whisper==1.2.1
+ctranslate2==4.8.0
+av==17.1.0
+tokenizers==0.22.2
+
+# --- Speaker diarization --------------------------------------------
+# speechbrain==0.5.16 is installed --no-deps in a SEPARATE step (see
+# install_dubbing.bat): pyannote's metadata wants >=1.0.0, but 1.x lazily
+# imports k2_fsa which crashes on Windows. 0.5.16 works at runtime.
+# (huggingface_hub is NOT pinned here — this stack loads the LOCAL bundled
+#  pyannote models, so it never hits the hub's removed `use_auth_token`.)
+pyannote.audio==3.3.2
+
+# --- REQUIRED by pyannote at pipeline-load time ---------------------
+# pyannote imports matplotlib when building the pipeline. If it's missing,
+# Pipeline.from_pretrained() silently returns None (no diarization, no error).
+matplotlib==3.11.0
+
+# --- Vocal / music separation ("Keep music & SFX" toggle) ----------
+demucs==4.1.0
+lameenc==1.8.4
+
+# --- Support libs ---------------------------------------------------
+soundfile==0.13.1
+pyyaml==6.0.3
+numpy==2.4.6
