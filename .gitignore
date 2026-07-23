@@ -150,3 +150,15 @@ nul
 # User settings (personal, per-machine configuration)
 overlay_settings.json
 processing_paths.json
+
+# Shell-typo artifacts — 0-byte files created by accidental output redirection
+# of typed commands (e.g. `git`, `dir`, `cd`). Never real project files.
+/cd
+/dir
+/git
+/nslookup
+/pytorch
+/edge-tts
+/pull code.txt
+/pull commands.txt
+/New Microsoft Word Document.docx
