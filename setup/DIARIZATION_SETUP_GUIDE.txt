@@ -1,0 +1,179 @@
+===============================================================================
+ Multi-Speaker Dubbing — New-PC Setup Guide
+===============================================================================
+ Feature: the Dubbing tab detects WHO speaks WHEN (speaker diarization) and
+ voices each speaker with its own Gemini TTS voice.
+
+ This guide covers a fresh machine. Two parts:
+   PART A — install the Python packages
+   PART B — copy the model weight files (they are gitignored, NOT in the repo)
+
+ Both parts are required. Packages alone won't work without the model weights;
+ weights alone won't work without the packages.
+
+-------------------------------------------------------------------------------
+ WHY THE EXTRA STEP (whisperx warning)
+-------------------------------------------------------------------------------
+ The original plan used whisperx. We do NOT use it. whisperx pins
+ ctranslate2 < 4.5.0, which loads cuDNN 8 and breaks this project's working
+ cuDNN-9 GPU stack (torch 2.5.1 / faster-whisper 1.2.1 / ctranslate2 4.8.0).
+
+ >>> Do NOT run "pip install whisperx" on any machine running this project. <<<
+
+ Diarization is done with pyannote.audio directly; word timestamps come from
+ faster-whisper (already installed by the core requirements).
+
+===============================================================================
+ PART A — INSTALL PACKAGES
+===============================================================================
+
+ EASIEST (recommended):
+   1. Open a terminal in this "setup" folder.
+   2. Run:  install_diarize.bat
+   3. It installs CUDA torch first, then pyannote + the pinned ASR stack,
+      and warns you if the model weights are missing.
+
+ MANUAL (if you prefer, or the .bat fails):
+   1. GPU torch first (skip if you already have a CUDA torch):
+        pip install torch==2.5.1+cu121 torchaudio==2.5.1+cu121 ^
+            --index-url https://download.pytorch.org/whl/cu121
+   2. Then the diarization stack:
+        pip install -r requirements_diarize.txt
+
+ Verify packages:
+        python -c "import pyannote.audio, faster_whisper; print('ok')"
+        python -c "import torch; print('cuda:', torch.cuda.is_available())"
+   The second line should print  cuda: True  on a GPU machine.
+
+ REQUIREMENTS
+   - NVIDIA GPU with CUDA 12.1-compatible driver (strongly recommended;
+     CPU works but diarization is very slow).
+   - The core install already done (requirements_core.txt) — it provides
+     faster-whisper, soundfile, numpy, etc.
+
+===============================================================================
+ PART B — COPY THE MODEL WEIGHTS (gitignored — must be copied by hand)
+===============================================================================
+ These folders are excluded from git (too big) and are NOT downloaded by the
+ installer. Copy them from THIS PC to the SAME relative path on the new PC.
+
+ Source PC path (this machine):
+     d:\GitHub\ChangeGUI\models\
+
+ Copy these two folders into  <repo>\models\  on the new PC:
+
+ 1) models\pyannote\          (~32 MB — REQUIRED for offline diarization)
+        pyannote\
+          segmentation-3.0\
+            config.yaml
+            pytorch_model.bin
+          speaker-diarization-3.1\
+            config.yaml
+          wespeaker-voxceleb-resnet34-LM\
+            config.yaml
+            pytorch_model.bin
+
+ 2) models\whisper\           (word-timestamp weights — copy if not present)
+        whisper\
+          faster-whisper-base\      (~142 MB — fallback model)
+            config.json, model.bin, tokenizer.json, vocabulary.txt
+          faster-whisper-medium\    (~1.5 GB — default model)
+            config.json, model.bin, tokenizer.json, vocabulary.txt
+
+    NOTE: faster-whisper CAN auto-download these from the internet on first
+    run, so models\whisper\ is optional if the new PC is online. But copying
+    it makes the app fully offline and avoids a 1.6 GB download.
+    models\pyannote\ is the one you really must copy — the pyannote hub is
+    gated (needs an HF token + license acceptance) otherwise.
+
+ The final layout on the new PC must be exactly:
+     <repo>\models\pyannote\...
+     <repo>\models\whisper\...
+ No config editing is needed — the app rewrites the pyannote config paths to
+ wherever you put the folder, at runtime.
+
+ EASY COPY (e.g. via USB / network share):
+   - Zip  d:\GitHub\ChangeGUI\models\pyannote  (and optionally ...\whisper)
+   - Unzip into  <repo>\models\  on the new PC so the paths above line up.
+
+===============================================================================
+ OPTIONAL — ONLINE FALLBACK INSTEAD OF COPYING pyannote
+===============================================================================
+ If you can't copy models\pyannote\, the app can pull pyannote from the
+ Hugging Face hub instead, but that requires:
+   1. A Hugging Face account + a READ access token.
+   2. Accepting the model licenses (once) while logged in, at:
+        https://huggingface.co/pyannote/speaker-diarization-3.1
+        https://huggingface.co/pyannote/segmentation-3.0
+   3. Paste the token into the Dubbing tab -> "HF Token" field.
+ Copying the local bundle (Part B) is simpler and works fully offline.
+
+===============================================================================
+ OPTIONAL — KEEP ORIGINAL MUSIC & SOUND EFFECTS (Demucs vocal removal)
+===============================================================================
+ The Dubbing tab has a toggle: "Keep original music & sound effects (remove
+ only voices)". When on, the original audio is split into a vocals stem (the
+ actors' speech, discarded) and a music+SFX stem (kept at full volume as the
+ bed), so the dub sits on a clean instrumental track with NO original voices
+ underneath — far cleaner than the default ducking.
+
+ This uses Demucs (Meta's htdemucs model). To enable on a new PC:
+   pip install demucs
+ (install_diarize.bat installs it automatically.) It reuses the same torch
+ stack as diarization, so no extra torch install is needed.
+
+ THE MODEL IS ALREADY BUNDLED — no download needed on the new PC.
+ The htdemucs weight file (~81 MB) ships in this repo at:
+     setup\models\demucs\955717e8-8726e21a.th
+
+ Demucs loads htdemucs from the torch hub cache
+ (%USERPROFILE%\.cache\torch\hub\checkpoints). install_diarize.bat copies the
+ bundled .th file into that folder automatically, so the very first separation
+ works fully OFFLINE — no ~80 MB download from dl.fbaipublicfiles.com.
+
+ To pre-seed manually (if you skip the .bat):
+     if not exist "%USERPROFILE%\.cache\torch\hub\checkpoints" ^
+         mkdir "%USERPROFILE%\.cache\torch\hub\checkpoints"
+     copy /Y setup\models\demucs\955717e8-8726e21a.th ^
+         "%USERPROFILE%\.cache\torch\hub\checkpoints\"
+
+ If Demucs isn't installed, the toggle silently falls back to ducking the
+ original mix — nothing breaks.
+
+===============================================================================
+ HOW TO USE (after setup)
+===============================================================================
+   1. Open the app -> Dubbing tab.
+   2. Pick a video with more than one speaker.
+   3. Tick "Multi-speaker dubbing (detect & assign a voice per speaker)".
+   4. Click "Detect Speakers". After a minute it lists SPEAKER_00,
+      SPEAKER_01, ... each with a voice dropdown (pre-filled with distinct
+      voices). Adjust as you like — choices auto-save.
+   5. Click "Dub Video". Each speaker is voiced with its mapped voice; timing
+      stays synced to the original.
+   6. To go back to single-voice, just untick the box.
+
+===============================================================================
+ TROUBLESHOOTING
+===============================================================================
+ "Could not load symbol cudnnGetLibConfig. Error code 127"
+     A cuDNN version clash — almost always whisperx or an old ctranslate2
+     (<4.5) got installed. Fix:
+         pip uninstall whisperx
+         pip install ctranslate2==4.8.0 faster-whisper==1.2.1
+     Diarization intentionally runs BEFORE faster-whisper so cuDNN 9 loads
+     first; do not reorder that.
+
+ "No speakers detected" / diarization errors
+     - Check models\pyannote\ exists at the right path (Part B), OR set a
+       valid HF Token in the Dubbing tab.
+     - Check the tab's Log box for the real error.
+
+ Torch installed but cuda: False
+     You got the CPU build. Reinstall with the +cu121 wheel (Part A step 1).
+
+ Everything is slow
+     Diarization on CPU is slow. A CUDA GPU is strongly recommended.
+
+ See also: MULTISPEAKER_DUBBING_PLAN.md (repo root) for full design notes.
+===============================================================================

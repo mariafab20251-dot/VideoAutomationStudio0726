@@ -64,6 +64,22 @@ if "%TTS_CHOICE%"=="1" (
 )
 
 echo.
+echo Step 4/4: Dubbing tab (multi-speaker dubbing)
+echo ----------------------------------------------
+echo The Dubbing tab needs Python 3.11 + torch + faster-whisper
+echo + pyannote + demucs in a separate venv (setup\dub_venv).
+echo.
+echo Bundled models are ready in setup\models\ (1.7 GB).
+echo.
+set /p DUB_CHOICE="Install dubbing? (Y/n): "
+if /i "%DUB_CHOICE%"=="n" (
+    echo [SKIP] Dubbing not installed. Run setup\install_dubbing.bat later.
+) else (
+    echo [INSTALL] Setting up dubbing...
+    call setup\install_dubbing.bat
+)
+
+echo.
 echo ============================================
 echo  Setup complete!
 echo ============================================

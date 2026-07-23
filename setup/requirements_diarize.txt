@@ -1,0 +1,46 @@
+# =============================================================
+# Speaker Diarization — Multi-speaker dubbing
+# =============================================================
+# Install ONLY if you want the "Multi-speaker dubbing" toggle in the
+# Dubbing tab (detects who speaks when, then voices each speaker with
+# its own Gemini voice).
+#
+#   pip install -r requirements_diarize.txt
+#
+# These are the EXACT versions verified working together on the cuDNN-9
+# GPU stack (Windows 11, CUDA 12.1, NVIDIA GPU). Loosen at your own risk.
+#
+# -------------------------------------------------------------------
+# CRITICAL — do NOT install whisperx.
+# whisperx pins ctranslate2<4.5.0, which loads cuDNN 8
+# (cudnn_ops_infer64_8.dll) and breaks this cuDNN-9 stack. Diarization
+# uses pyannote.audio directly; word timestamps come from faster-whisper
+# (already in requirements_core.txt). See MULTISPEAKER_DUBBING_PLAN.md.
+# -------------------------------------------------------------------
+#
+# GPU torch: install the CUDA build FIRST from PyTorch's index, e.g.
+#   pip install torch==2.5.1+cu121 torchaudio==2.5.1+cu121 \
+#       --index-url https://download.pytorch.org/whl/cu121
+# (install_diarize.bat does this for you.) Then run this file.
+
+# --- Speaker diarization (torch-based → cuDNN 9) ---------------------
+# Keep pyannote on the 3.x line — it matches the bundled models/pyannote/
+# weights. pyannote 4.x needs torch 2.8+ and a different config format.
+pyannote.audio==3.3.2
+speechbrain==0.5.16
+
+# --- Word timestamps (must stay cuDNN-9 compatible) -----------------
+# ctranslate2 4.x = cuDNN 9. Do NOT let whisperx downgrade this to <4.5.
+faster-whisper==1.2.1
+ctranslate2==4.8.0
+
+# --- Support libs ---------------------------------------------------
+soundfile>=0.12.0
+pyyaml>=6.0
+
+# --- Vocal / music separation (Dubbing → "Keep music & SFX") --------
+# Demucs splits the original audio into vocals vs. music+SFX so a dub can
+# drop the actors' voices while keeping the score and sound effects.
+# Reuses the same torch stack as diarization (cuDNN 9). The htdemucs model
+# (~80 MB) auto-downloads on first use to the torch hub cache.
+demucs==4.1.0
