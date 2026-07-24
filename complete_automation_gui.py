@@ -7449,6 +7449,47 @@ class VideoAutomationGUI(DubbingTabMixin, ThumbnailTabMixin):
 
     # ── Core render entry-points ──────────────────────────────────────────
 
+    def _os_probe_dimensions(self, video_path):
+        """Return (width, height) of a video in display orientation, or (0, 0).
+
+        Uses ffprobe first (honours rotation side-data so a phone-rotated
+        1920x1080 file that displays as portrait is reported 1080x1920),
+        then falls back to OpenCV.
+        """
+        try:
+            import subprocess as _sp, json as _json
+            _out = _sp.run(
+                ['ffprobe', '-v', 'error', '-select_streams', 'v:0',
+                 '-show_entries', 'stream=width,height:stream_side_data=rotation',
+                 '-of', 'json', str(video_path)],
+                capture_output=True, text=True, timeout=30)
+            _data = _json.loads(_out.stdout or '{}')
+            _st = (_data.get('streams') or [{}])[0]
+            _w = int(_st.get('width') or 0)
+            _h = int(_st.get('height') or 0)
+            _rot = 0
+            for _sd in _st.get('side_data_list', []) or []:
+                if 'rotation' in _sd:
+                    try:
+                        _rot = int(_sd['rotation'])
+                    except (TypeError, ValueError):
+                        _rot = 0
+            if _rot % 180 != 0:
+                _w, _h = _h, _w   # display orientation swaps on 90/270°
+            if _w and _h:
+                return _w, _h
+        except Exception:
+            pass
+        try:
+            import cv2
+            _cap = cv2.VideoCapture(str(video_path))
+            _w = int(_cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 0)
+            _h = int(_cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
+            _cap.release()
+            return _w, _h
+        except Exception:
+            return 0, 0
+
     def _os_run_single_impl(self, channel: Path, video_id: str,
                             video_path: Path, vo_mode: str,
                             caption_text: str):
@@ -7513,14 +7554,46 @@ class VideoAutomationGUI(DubbingTabMixin, ThumbnailTabMixin):
                 _mute_original = _is_yes(_row_get('Mute Original'))
                 _aspect = (_row_get('Aspect Ratio') or '').split()[0] \
                     if _row_get('Aspect Ratio') else ''
+                _aspect_explicit = bool(_aspect) or _legacy_vertical
                 if not _aspect:
                     # Fall back to legacy behaviour: vertical → 9:16, else 16:9.
                     _aspect = '9:16' if _legacy_vertical else '16:9'
+                _auto_matches_source = False
+                if not _aspect_explicit:
+                    # No Aspect Ratio / Vertical Format column in this Excel
+                    # (e.g. movies_with_voiceover TikTok rows). Probe the source
+                    # video's real dimensions and match its orientation instead
+                    # of forcing 16:9 — otherwise a portrait 1080x1920 TikTok
+                    # would be rendered landscape.
+                    try:
+                        _sw, _sh = self._os_probe_dimensions(video_path)
+                        if _sw and _sh:
+                            if _sh > _sw:
+                                _aspect = '9:16'
+                            elif _sw == _sh:
+                                _aspect = '1:1'
+                            else:
+                                _aspect = '16:9'
+                            # Source already matches target → no reframe/crop.
+                            _auto_matches_source = True
+                            self._os_log('info',
+                                f'Aspect auto-detected from source '
+                                f'{_sw}x{_sh} → {_aspect}')
+                    except Exception as _e_asp:
+                        self._os_log('warn',
+                            f'Aspect auto-detect failed ({_e_asp}); '
+                            f'using {_aspect}')
                 if _aspect == '9:16':
                     _do_reframe, _reframe_w, _reframe_h = True, 1080, 1920
                 elif _aspect == '1:1':
                     _do_reframe, _reframe_w, _reframe_h = True, 1080, 1080
                 else:  # 16:9 — native source framing, no reframe pass
+                    _do_reframe = False
+                if _auto_matches_source:
+                    # The source is already in the target orientation, so the
+                    # face-track reframe (which crops a 16:9 source into 9:16)
+                    # is unnecessary and would wrongly crop an already-portrait
+                    # video. Skip it and let the source frame straight through.
                     _do_reframe = False
                 # Force the render's output resolution to match the chosen
                 # aspect. Without this the main pipeline falls back to its
@@ -7942,6 +8015,8 @@ class VideoAutomationGUI(DubbingTabMixin, ThumbnailTabMixin):
                                 r'(?:\|\s*\[.*?\]\s*)?\|?\s*$',
                                 '', _txt, flags=_re2.IGNORECASE)
                             _txt = _re2.sub(r'\s*\|\s*\[.*?\]\s*$', '', _txt)
+                            # (N) glued with just a space (no pipe): "...text (8)"
+                            _txt = _re2.sub(r'\s*\(\s*\d+\s*(?:words?)?\s*\)\s*$', '', _txt, flags=_re2.IGNORECASE)
                             _txt = _re2.sub(r'\s*\|\s*$', '', _txt).strip()
                             # Detect a CTA spot from its "CTA" label BEFORE we
                             # strip the label, so the renderer can style it
@@ -8422,6 +8497,8 @@ class VideoAutomationGUI(DubbingTabMixin, ThumbnailTabMixin):
             r'\s*\|\s*\(\s*\d+\s*(?:words?)?\s*\)\s*(?:\|\s*\[.*?\]\s*)?\|?\s*$',
             '', seg, flags=re.IGNORECASE)
         seg = re.sub(r'\s*\|\s*\[.*?\]\s*$', '', seg)
+        # Word-count marker preceded by just a space (no pipe): "...text (8)".
+        seg = re.sub(r'\s*\(\s*\d+\s*(?:words?)?\s*\)\s*$', '', seg, flags=re.IGNORECASE)
         seg = re.sub(r'\s*\|\s*$', '', seg)
         # Strip leading CTA: label (in case the intro is a CTA).
         seg = re.sub(r'^\s*CTA\s*[:\-–—]\s*', '', seg, flags=re.I)
@@ -8547,6 +8624,10 @@ class VideoAutomationGUI(DubbingTabMixin, ThumbnailTabMixin):
             r'^\s*\[\w+(?:\s+\w+)*\]\s*\|?\s*', '', _clean, flags=re.MULTILINE)
         _clean = re.sub(
             r'\s*\|\s*\(\d+\)\s*\|\s*\[.*?\]\s*', '', _clean, flags=re.MULTILINE)
+        # Word-count marker preceded by just a space (no pipe): "...text (8)".
+        _clean = re.sub(
+            r'\s*\(\s*\d+\s*(?:words?)?\s*\)\s*$', '', _clean,
+            flags=re.MULTILINE | re.IGNORECASE)
         _clean = re.sub(
             r'\s*\|\s*\[.*?\]\s*', '', _clean, flags=re.MULTILINE)
         # Strip "CTA:" / "CTA -" / "CTA —" / bare "CTA" labels so TTS
@@ -8664,6 +8745,11 @@ class VideoAutomationGUI(DubbingTabMixin, ThumbnailTabMixin):
                 r'\s*\|\s*\(\s*\d+\s*(?:words?)?\s*\)\s*(?:\|\s*\[.*?\]\s*)?\|?\s*$',
                 '', raw_text, flags=re.IGNORECASE)
             clean = re.sub(r'\s*\|\s*\[.*?\]\s*$', '', clean)
+            # Word-count marker glued to the text with a SPACE (no pipe), e.g.
+            #   "सारा ... खेल रही थी। (8)"  or  "...text (10 words)".
+            # This is the common Excel/Custom-Script format and the pipe-anchored
+            # rule above misses it, so TTS would otherwise read "(8)" aloud.
+            clean = re.sub(r'\s*\(\s*\d+\s*(?:words?)?\s*\)\s*$', '', clean, flags=re.IGNORECASE)
             clean = re.sub(r'\s*\|\s*$', '', clean)  # any dangling trailing pipe
             # Strip a leading "CTA:" / "CTA -" / "CTA —" / bare "CTA" label so
             # neither the voice reads it aloud nor the caption shows it.
@@ -9160,6 +9246,8 @@ class VideoAutomationGUI(DubbingTabMixin, ThumbnailTabMixin):
                 r'\s*\|\s*\(\s*\d+\s*(?:words?)?\s*\)\s*(?:\|\s*\[.*?\]\s*)?\|?\s*$',
                 '', _dl)
             _dl = _re_display.sub(r'\s*\|\s*\[.*?\]\s*$', '', _dl)
+            # (N) glued with just a space (no pipe): "...text (8)"
+            _dl = _re_display.sub(r'\s*\(\s*\d+\s*(?:words?)?\s*\)\s*$', '', _dl, flags=_re_display.IGNORECASE)
             _dl = _re_display.sub(r'\s*\|\s*$', '', _dl)
             _dl = _dl.strip()
             if _dl:
@@ -9184,6 +9272,11 @@ class VideoAutomationGUI(DubbingTabMixin, ThumbnailTabMixin):
         # Strip remaining | [emotion] tags
         _clean_vo = re.sub(
             r'[^\S\n]*\|[^\S\n]*\[.*?\][^\S\n]*', '', _clean_vo, flags=re.MULTILINE)
+        # (N) word-count glued with just a space (no pipe): "...text (8)" — the
+        # common Excel format; without this TTS reads "(8)" aloud (esp. Hindi).
+        _clean_vo = re.sub(
+            r'[^\S\n]*\(\s*\d+\s*(?:words?)?\s*\)[^\S\n]*$',
+            '', _clean_vo, flags=re.MULTILINE | re.IGNORECASE)
         # Strip leading [emotion] tags at start of lines (leftover after timestamp removal)
         _clean_vo = re.sub(
             r'^\[.*?\][^\S\n]*\|?[^\S\n]*', '', _clean_vo, flags=re.MULTILINE)
@@ -9431,6 +9524,12 @@ class VideoAutomationGUI(DubbingTabMixin, ThumbnailTabMixin):
             f'{video_id}_montage_combined.mp4',
             f'{video_id}_combined_audio.m4a',
             f'{video_id}_nosilence.mp4',
+            # Reframe outputs (vertical / 1x1) are created from the montage
+            # intro or the final combined video and are not cleaned elsewhere.
+            f'{video_id}_montage_intro_vertical.mp4',
+            f'{video_id}_montage_intro_1x1.mp4',
+            f'{video_id}_montage_final_vertical.mp4',
+            f'{video_id}_montage_final_1x1.mp4',
         ]:
             _tmp_path = _video_base / _tmp_name
             try:
@@ -9439,6 +9538,22 @@ class VideoAutomationGUI(DubbingTabMixin, ThumbnailTabMixin):
                     self._os_log('debug', f'Cleaned up montage temp: {_tmp_name}')
             except Exception:
                 pass
+        # Catch any remaining reframe temp files with a glob sweep
+        try:
+            for _f in _video_base.glob(f'{video_id}_*_vertical.mp4'):
+                try:
+                    _f.unlink()
+                    self._os_log('debug', f'Cleaned up extra reframe: {_f.name}')
+                except Exception:
+                    pass
+            for _f in _video_base.glob(f'{video_id}_*_1x1.mp4'):
+                try:
+                    _f.unlink()
+                    self._os_log('debug', f'Cleaned up extra reframe: {_f.name}')
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
         self._os_log('header', f'═══ Run complete: {video_id} ═══')
 

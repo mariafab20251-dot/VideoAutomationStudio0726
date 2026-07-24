@@ -145,6 +145,79 @@ class DubbingTabMixin:
                      font=('Segoe UI', 9, 'bold'), padx=10, pady=3,
                      command=_browse_video).pack(side='left')
 
+        # ── 1a) Batch folder (optional) ─────────────────────────────────
+        # If set, EVERY video in this folder is dubbed one-by-one and the
+        # single "Source Video" above is ignored.
+        frow = tk.Frame(vid_card, bg=AppStyles.BG_CARD)
+        frow.pack(fill='x', padx=8, pady=(0, 4))
+        tk.Label(frow, text='or folder:', bg=AppStyles.BG_CARD,
+                 fg=AppStyles.TEXT_MEDIUM, font=('Segoe UI', 8),
+                 width=8, anchor='w').pack(side='left')
+        self._dub_folder_var = tk.StringVar(
+            value=self.settings.get('dub_batch_folder', ''))
+        tk.Entry(frow, textvariable=self._dub_folder_var, bg=AppStyles.BG_INPUT,
+                 fg=AppStyles.TEXT_DARK, font=('Segoe UI', 9), relief='flat').pack(
+                     side='left', fill='x', expand=True, padx=(0, 6), ipady=3)
+
+        def _browse_folder():
+            d = filedialog.askdirectory(
+                title='Select a folder of videos to dub (batch)')
+            if d:
+                self._dub_folder_var.set(d)
+                self.update_setting('dub_batch_folder', d)
+                self._dub_refresh_batch_count()
+
+        def _clear_folder():
+            self._dub_folder_var.set('')
+            self.update_setting('dub_batch_folder', '')
+            self._dub_refresh_batch_count()
+        ModernButton(frow, text='📂 Folder', bg_color=AppStyles.ACCENT_INFO,
+                     font=('Segoe UI', 9, 'bold'), padx=10, pady=3,
+                     command=_browse_folder).pack(side='left')
+        ModernButton(frow, text='✖', bg_color=AppStyles.TEXT_MEDIUM,
+                     font=('Segoe UI', 9, 'bold'), padx=8, pady=3,
+                     command=_clear_folder).pack(side='left', padx=(4, 0))
+
+        # Recurse into subfolders?
+        self._dub_batch_recursive_var = tk.BooleanVar(
+            value=bool(self.settings.get('dub_batch_recursive', False)))
+        # Skip videos whose output already exists (resume-friendly)?
+        self._dub_batch_skip_done_var = tk.BooleanVar(
+            value=bool(self.settings.get('dub_batch_skip_done', True)))
+        crow2 = tk.Frame(vid_card, bg=AppStyles.BG_CARD)
+        crow2.pack(fill='x', padx=8, pady=(0, 2))
+        tk.Checkbutton(crow2, text='include subfolders',
+                       variable=self._dub_batch_recursive_var,
+                       bg=AppStyles.BG_CARD, fg=AppStyles.TEXT_DARK,
+                       activebackground=AppStyles.BG_CARD,
+                       selectcolor=AppStyles.BG_INPUT, font=('Segoe UI', 8),
+                       command=lambda: (self.update_setting(
+                           'dub_batch_recursive',
+                           self._dub_batch_recursive_var.get()),
+                           self._dub_refresh_batch_count())).pack(side='left')
+        tk.Checkbutton(crow2, text='skip already-dubbed',
+                       variable=self._dub_batch_skip_done_var,
+                       bg=AppStyles.BG_CARD, fg=AppStyles.TEXT_DARK,
+                       activebackground=AppStyles.BG_CARD,
+                       selectcolor=AppStyles.BG_INPUT, font=('Segoe UI', 8),
+                       command=lambda: self.update_setting(
+                           'dub_batch_skip_done',
+                           self._dub_batch_skip_done_var.get())).pack(
+                               side='left', padx=(12, 0))
+        self._dub_batch_count_var = tk.StringVar(value='')
+        tk.Label(vid_card, textvariable=self._dub_batch_count_var,
+                 bg=AppStyles.BG_CARD, fg=AppStyles.ACCENT_PRIMARY,
+                 font=('Segoe UI', 8, 'italic')).pack(anchor='w', padx=8)
+        tk.Label(vid_card,
+                 text='   Batch mode: every video in the folder is dubbed into '
+                      'the target language one-by-one. Multi-speaker voice '
+                      'assignments are per-video, so unmapped speakers use your '
+                      'default TTS voice.',
+                 bg=AppStyles.BG_CARD, fg=AppStyles.TEXT_MEDIUM,
+                 font=('Segoe UI', 8, 'italic'), justify='left',
+                 wraplength=500).pack(anchor='w', padx=8, pady=(0, 4))
+        self._dub_refresh_batch_count()
+
         # ── 1b) Source language ────────────────────────────────────────
         src_card = self._dub_card(scrollable, '🔊 Source Language')
         srow = tk.Frame(src_card, bg=AppStyles.BG_CARD)
@@ -287,8 +360,8 @@ class DubbingTabMixin:
                      font=('Segoe UI', 9, 'bold'), padx=8, pady=3,
                      command=_browse_out).pack(side='left')
         tk.Label(opt_card,
-                 text='   Leave blank to write next to the source video as '
-                      '<name>_dubbed_<lang>.mp4',
+                 text='   Leave blank: writes into '
+                      '<parent-folder>_<lang>/ with original filename',
                  bg=AppStyles.BG_CARD, fg=AppStyles.TEXT_MEDIUM,
                  font=('Segoe UI', 8, 'italic')).pack(anchor='w', padx=8)
 
@@ -416,6 +489,85 @@ class DubbingTabMixin:
         self._dub_log_widget.pack(side='left', fill='both', expand=True)
         _log_scroll.config(command=self._dub_log_widget.yview)
         self._dub_running = False
+
+    # ── Batch-folder helpers ────────────────────────────────────────────
+    VIDEO_EXTS = ('.mp4', '.mov', '.mkv', '.avi', '.webm', '.m4v', '.flv',
+                  '.wmv', '.mpg', '.mpeg', '.ts')
+
+    def _dub_scan_folder(self, folder: str, recursive: bool):
+        """Return a sorted list of video Paths in *folder*.
+
+        Skips our own outputs so a re-run over the same folder never dubs
+        a dub — both legacy ``*_dubbed_*.mp4`` files and the new subfolder
+        layout (``<parent>_<lang>/original_name.mp4``) are excluded.
+        """
+        from pathlib import Path as _P
+        base = _P(folder)
+        if not base.is_dir():
+            return []
+        # Compute current output-subfolder suffix (e.g. "_english") so
+        # files sitting inside a previously-dubbed output folder are skipped.
+        _lang = (self._dub_lang_var.get() or '').strip()
+        _safe_lang = _lang.lower().replace(' ', '_') if _lang else ''
+        it = base.rglob('*') if recursive else base.glob('*')
+        vids = []
+        for p in it:
+            if not p.is_file():
+                continue
+            if p.suffix.lower() not in self.VIDEO_EXTS:
+                continue
+            if '_dubbed_' in p.stem.lower():
+                continue
+            # Skip files inside a previous dub-output subfolder
+            if _safe_lang and p.parent.name.endswith(f'_{_safe_lang}'):
+                continue
+            vids.append(p)
+        return sorted(vids, key=lambda p: str(p).lower())
+
+    def _dub_batch_out_path(self, src, lang: str):
+        """Where the dub for *src* is written.
+
+        Creates a subfolder named ``<parent-folder>_<lang>`` next to the
+        source video and keeps the **original filename** (no ``_dubbed_``
+        suffix).  If the user set a custom output-folder override in the UI
+        that folder is used as the base instead of the source's parent.
+
+        Example:
+            ``videos/MyChannel/video.mp4`` dubbed to ``english`` →
+            ``videos/MyChannel/MyChannel_english/video.mp4``
+        """
+        from pathlib import Path as _P
+        src = _P(src)
+        out_folder = (self._dub_out_var.get() or '').strip()
+        safe_lang = lang.lower().replace(' ', '_')
+        # The "channel name" is the source video's parent folder name.
+        parent_name = src.parent.name
+        subfolder_name = f'{parent_name}_{safe_lang}'
+        base_dir = _P(out_folder) if out_folder else src.parent
+        output_dir = base_dir / subfolder_name
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass  # will fail downstream if the dir is unwritable
+        return output_dir / src.name  # keep original filename
+
+    def _dub_refresh_batch_count(self):
+        """Update the '(N videos found)' hint next to the folder picker."""
+        try:
+            folder = (self._dub_folder_var.get() or '').strip()
+        except Exception:
+            return
+        if not folder:
+            self._dub_batch_count_var.set('')
+            return
+        vids = self._dub_scan_folder(
+            folder, bool(self._dub_batch_recursive_var.get()))
+        n = len(vids)
+        if n == 0:
+            self._dub_batch_count_var.set('   ⚠ no videos found in that folder')
+        else:
+            self._dub_batch_count_var.set(
+                f'   📂 batch mode ON — {n} video(s) queued')
 
     # ── Small UI helpers ────────────────────────────────────────────────
     def _dub_card(self, parent, title):
@@ -790,23 +942,50 @@ class DubbingTabMixin:
             self._dub_log('warn', 'A dub is already running — please wait.')
             return
 
-        video = (self._dub_video_var.get() or '').strip()
         lang = (self._dub_lang_var.get() or '').strip()
         src_lang = (self._dub_src_lang_var.get() or '').strip()
-        if not video or not Path(video).is_file():
-            messagebox.showerror('Dubbing', 'Please pick a valid video file.')
-            return
         if not lang:
             messagebox.showerror('Dubbing', 'Please pick a target language.')
             return
 
-        # Resolve output path
-        out_folder = (self._dub_out_var.get() or '').strip()
+        # ── Batch-folder mode takes priority when a folder is set ─────────
+        folder = (self._dub_folder_var.get() or '').strip()
+        if folder:
+            if not Path(folder).is_dir():
+                messagebox.showerror('Dubbing', 'The batch folder does not exist.')
+                return
+            recursive = bool(self._dub_batch_recursive_var.get())
+            vids = self._dub_scan_folder(folder, recursive)
+            if not vids:
+                messagebox.showerror(
+                    'Dubbing', 'No videos found in that folder.')
+                return
+            self.update_setting('dub_batch_folder', folder)
+            self.update_setting('dub_target_language', lang)
+            self.update_setting('dub_source_language', src_lang)
+
+            self._dub_running = True
+            self._dub_run_btn.config(state='disabled')
+            self._dub_progress_var.set(0)
+            self._dub_log('header',
+                          f'Batch dub started: {len(vids)} video(s) → {lang}')
+            self._dub_set_status(f'Batch: 0/{len(vids)}…')
+            t = threading.Thread(
+                target=self._dub_batch_worker,
+                args=(vids, lang, src_lang), daemon=True)
+            t.start()
+            return
+
+        # ── Single-video mode ─────────────────────────────────────────────
+        video = (self._dub_video_var.get() or '').strip()
+        if not video or not Path(video).is_file():
+            messagebox.showerror(
+                'Dubbing', 'Please pick a valid video file, or choose a '
+                           'folder for batch mode.')
+            return
+
         src = Path(video)
-        safe_lang = lang.lower().replace(' ', '_')
-        out_name = f'{src.stem}_dubbed_{safe_lang}.mp4'
-        out_video = (Path(out_folder) / out_name) if out_folder else \
-            src.with_name(out_name)
+        out_video = self._dub_batch_out_path(src, lang)
 
         # Persist selections
         self.update_setting('dub_last_video', video)
@@ -823,6 +1002,72 @@ class DubbingTabMixin:
             target=self._dub_worker,
             args=(src, out_video, lang, src_lang), daemon=True)
         t.start()
+
+    def _dub_batch_worker(self, vids, lang: str, src_lang: str):
+        """Dub every video in *vids* one-by-one on this worker thread.
+
+        Each video is independent: a failure on one is logged and the batch
+        continues with the next. The overall progress bar tracks video count;
+        per-video engine progress is streamed to the log/status line.
+        """
+        total = len(vids)
+        done = ok = skipped = failed = 0
+        skip_done = bool(self._dub_batch_skip_done_var.get())
+        try:
+            for idx, src in enumerate(vids, 1):
+                if not getattr(self, '_dub_running', False):
+                    self._dub_log('warn', 'Batch cancelled.')
+                    break
+                out_video = self._dub_batch_out_path(src, lang)
+                self._dub_set_status(
+                    f'Batch {idx}/{total}: {src.name}')
+                self._dub_set_progress(idx - 1, total,
+                                       f'Batch {idx}/{total}: {src.name}')
+
+                if skip_done and Path(out_video).is_file() \
+                        and Path(out_video).stat().st_size > 0:
+                    self._dub_log('info',
+                                  f'[{idx}/{total}] ⏭ already dubbed — {src.name}')
+                    skipped += 1
+                    done += 1
+                    continue
+
+                self._dub_log('header', f'[{idx}/{total}] {src.name} → {lang}')
+                try:
+                    result = dubbing_engine.dub_video(
+                        src, out_video, lang, self.settings,
+                        log=self._dub_log,
+                        progress=self._dub_set_progress,
+                        keep_audio_file=bool(self._dub_keep_audio_var.get()),
+                        source_language=src_lang
+                        if src_lang != 'Auto-detect' else None)
+                    if result is not None:
+                        self._dub_log('ok',
+                                      f'[{idx}/{total}] ✅ {Path(result).name}')
+                        ok += 1
+                    else:
+                        self._dub_log('error',
+                                      f'[{idx}/{total}] ❌ failed — {src.name}')
+                        failed += 1
+                except Exception as e:
+                    self._dub_log('error',
+                                  f'[{idx}/{total}] error on {src.name}: {e}')
+                    for ln in traceback.format_exc().splitlines():
+                        self._dub_log('error', f'  {ln}')
+                    failed += 1
+                done += 1
+                self._dub_set_progress(done, total)
+
+            summary = (f'Batch done: {ok} dubbed, {skipped} skipped, '
+                       f'{failed} failed (of {total}).')
+            self._dub_log('header', summary)
+            self._dub_set_status(f'✅ {summary}')
+            self._dub_video_widget_after(
+                lambda: messagebox.showinfo('Batch dubbing complete', summary))
+        finally:
+            self._dub_running = False
+            self._dub_video_widget_after(
+                lambda: self._dub_run_btn.config(state='normal'))
 
     def _dub_worker(self, src: Path, out_video: Path, lang: str,
                     src_lang: str = 'Auto-detect'):

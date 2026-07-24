@@ -151,6 +151,10 @@ nul
 overlay_settings.json
 processing_paths.json
 
+# Unused content folders — leftover from earlier test setups
+videodata/
+extracted_docs/
+
 # Shell-typo artifacts — 0-byte files created by accidental output redirection
 # of typed commands (e.g. `git`, `dir`, `cd`). Never real project files.
 /cd
