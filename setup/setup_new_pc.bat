@@ -69,14 +69,17 @@ echo ----------------------------------------------
 echo The Dubbing tab needs Python 3.11 + torch + faster-whisper
 echo + pyannote + demucs in a separate venv (setup\dub_venv).
 echo.
+echo The installer AUTO-DETECTS your GPU and picks the right build:
+echo    NVIDIA -^> CUDA  ^|  AMD -^> DirectML  ^|  otherwise -^> CPU
+echo.
 echo Bundled models are ready in setup\models\ (1.7 GB).
 echo.
 set /p DUB_CHOICE="Install dubbing? (Y/n): "
 if /i "%DUB_CHOICE%"=="n" (
-    echo [SKIP] Dubbing not installed. Run setup\install_dubbing.bat later.
+    echo [SKIP] Dubbing not installed. Run setup\install_dubbing_auto.bat later.
 ) else (
-    echo [INSTALL] Setting up dubbing...
-    call setup\install_dubbing.bat
+    echo [INSTALL] Setting up dubbing (auto GPU detect)...
+    call setup\install_dubbing_auto.bat
 )
 
 echo.
