@@ -507,7 +507,11 @@ class DubbingTabMixin:
             return []
         # Compute current output-subfolder suffix (e.g. "_english") so
         # files sitting inside a previously-dubbed output folder are skipped.
-        _lang = (self._dub_lang_var.get() or '').strip()
+        # NB: _dub_scan_folder can run during tab-build (via
+        # _dub_refresh_batch_count) BEFORE _dub_lang_var is created, so guard it.
+        _lang = ''
+        if hasattr(self, '_dub_lang_var'):
+            _lang = (self._dub_lang_var.get() or '').strip()
         _safe_lang = _lang.lower().replace(' ', '_') if _lang else ''
         it = base.rglob('*') if recursive else base.glob('*')
         vids = []
